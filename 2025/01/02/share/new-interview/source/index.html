@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="为什么要学习源码？学习优秀的代码实践如果我们沉浸在自己的世界，整天 CRUD，实际是很难提高自己的编码能力，重复编码提升的不过是熟练度罢了! 如果我们想要写出质量更高、扩展性更好的代码，我们要做的事情非常简单：看一些技术大佬是怎么写的，模仿就完事了。 这个模仿不同于照葫芦画瓢，我们需要搞懂优秀设计背后的原理。 那怎么检验自己是否掌握了呢？很简单，看自己能不能在后续的编码中实践就好了。但是，切记不要">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为什么要学习源码？源码这块面试会怎么问呢？如何阅读源码？">
+<meta property="og:url" content="http://example.com/2025/01/02/share/new-interview/source/index.html">
+<meta property="og:site_name" content="程序员波特的个人博客">
+<meta property="og:description" content="为什么要学习源码？学习优秀的代码实践如果我们沉浸在自己的世界，整天 CRUD，实际是很难提高自己的编码能力，重复编码提升的不过是熟练度罢了! 如果我们想要写出质量更高、扩展性更好的代码，我们要做的事情非常简单：看一些技术大佬是怎么写的，模仿就完事了。 这个模仿不同于照葫芦画瓢，我们需要搞懂优秀设计背后的原理。 那怎么检验自己是否掌握了呢？很简单，看自己能不能在后续的编码中实践就好了。但是，切记不要">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/share/new-interview/6feb1a70-cf36-4632-b9ac-55eb430b87a0.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/8b23a419-8370-42be-8ebc-02455f3b3236.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/a579fca9-a4c7-4c5b-8ec3-7816abc45084.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/657869aa-2426-4c4e-ac19-56599f12844e.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/3cda6de8-d577-40ac-ad08-fd6b5a7f594d.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/c6f47c75-98cf-4d46-b8fb-bfdaf79ae97c.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/7e0ffdfd-5029-4335-bb2d-78d4e8983fef.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/cb527169-4489-4076-88ea-dea046ed0b29.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/34a9da65-1e02-4aaa-80ce-5e5b34e4c6cf.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/5fd25717-d7cd-492b-b964-84913ce4621f-1666096434511182.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/30362dad-4243-4d2c-94c6-49217df1a32d.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/0e5f4e3b-8493-49ca-9a9d-0d0b159946c5.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/81016677-6496-4a18-bd56-97ae95537f9b.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/fab45673-7a8f-4f24-b4dd-f8c2b5d010e6.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/65d7e277-d1b4-439b-8c0e-e74d1062783e.png">
+<meta property="article:published_time" content="2025-01-01T23:00:00.000Z">
+<meta property="article:modified_time" content="2025-03-03T14:06:21.358Z">
+<meta property="article:author" content="程序员波特">
+<meta property="article:tag" content="面试题">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/share/new-interview/6feb1a70-cf36-4632-b9ac-55eb430b87a0.png">
+
+<link rel="canonical" href="http://example.com/2025/01/02/share/new-interview/source/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>为什么要学习源码？源码这块面试会怎么问呢？如何阅读源码？ | 程序员波特的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程序员波特的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个小而美的程序员编程资料站</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/01/02/share/new-interview/source/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="程序员波特">
+      <meta itemprop="description" content="程序员编程资料站">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程序员波特的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          为什么要学习源码？源码这块面试会怎么问呢？如何阅读源码？
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-01-02 07:00:00" itemprop="dateCreated datePublished" datetime="2025-01-02T07:00:00+08:00">2025-01-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-03-03 22:06:21" itemprop="dateModified" datetime="2025-03-03T22:06:21+08:00">2025-03-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BC%81%E4%B8%9A%E7%BA%A7%E5%9C%BA%E6%99%AF%E9%9D%A2%E8%AF%95%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">企业级场景面试题</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="为什么要学习源码？"><a href="#为什么要学习源码？" class="headerlink" title="为什么要学习源码？"></a>为什么要学习源码？</h3><h4 id="学习优秀的代码实践"><a href="#学习优秀的代码实践" class="headerlink" title="学习优秀的代码实践"></a>学习优秀的代码实践</h4><p>如果我们沉浸在自己的世界，整天 CRUD，实际是很难提高自己的编码能力，重复编码提升的不过是熟练度罢了!</p>
+<p>如果我们想要写出质量更高、扩展性更好的代码，我们要做的事情非常简单：<strong>看一些技术大佬是怎么写的，模仿就完事了</strong>。</p>
+<p><strong>这个模仿不同于照葫芦画瓢，我们需要搞懂优秀设计背后的原理。</strong></p>
+<p>那怎么检验自己是否掌握了呢？很简单，看自己能不能在后续的编码中实践就好了。但是，切记不要为了用“好的编码实践”而用，一切要结合业务实际需要。</p>
+<p>一些不错的开源项目，都是一些技术大佬们几个月甚至是几年的成果。只要肯花时间看，我们一定能从源码中学到很多东西。</p>
+<p>我们需要重点关注源码中的这些点：</p>
+<ul>
+<li><p>如何抽象接口的？</p>
+</li>
+<li><p>如何运用设计模式的？</p>
+</li>
+<li><p>如何实践 SOLID 软件设计原则的？</p>
+</li>
+<li><p>有哪些优秀的编码实践？</p>
+</li>
+<li><p>……</p>
+</li>
+</ul>
+<h4 id="借鉴"><a href="#借鉴" class="headerlink" title="借鉴"></a>借鉴</h4><p>如果我们想要设计一个类似的框架或者轮子的话，参考已有的优秀框架不失为一个好手段。俗话说的好：“他山之石可以攻玉”。</p>
+<p>我们平时接触到的很多开源项目都是例子，比如阿里开源的消息队列 RocketMQ 就借鉴了 Kafka 。</p>
+<h4 id="面试需要"><a href="#面试需要" class="headerlink" title="面试需要"></a>面试需要</h4><p>据我观察，大部分真正愿意去看源码的朋友都是为了面试。这些朋友会找到对应框架比较重要的部分来学习源码，拿 Spring Boot 来说的话，就是 Spring Boot 启动流程、自动配置原理…。</p>
+<p>确实，短时间内突击源码，我们一定要重点关注那些重要的地方。</p>
+<p>但是，这种为了面试而突击源码的方式，往往很难真正学到源码的精髓，能收货的东西也会很有限。</p>
+<h4 id="项目需求"><a href="#项目需求" class="headerlink" title="项目需求"></a>项目需求</h4><p>很多时候，我们阅读源码是因为项目需要。</p>
+<p>比如说我们的项目在前期引入了某个开源框架，但是到项目中期的时候，我们发现这个开源框架并不能很好地满足我们的需求，甚至说还有一些小 bug 。与这个开源框架相关的负责人员交涉之后，我们的反馈并没有得到相应。这个时候， 我们就需要自己去实现某些功能以及修复某些 bug。想要做这些事情的前提是：我们当前对这个开源框架某一块的源码比较熟悉了。</p>
+<h3 id="源码面试这块会怎么问？"><a href="#源码面试这块会怎么问？" class="headerlink" title="源码面试这块会怎么问？"></a>源码面试这块会怎么问？</h3><p>首先，你需要明确一点的是：随便一个框架的源码都 10w+行了，都看一遍是不可能的。你需要挑选比较重要的地方看。</p>
+<p>拿 Spring&#x2F;Spring Boot 源码举例：你一定要去看 IOC 和 AOP 具体的实现，要知道一个 Spring Bean 是如何一步一步被创建出来的。一定要搞清 Spring Boot 是如何实现自动配置的。</p>
+<p>源码面试这个不会太细节。如果你知道的话一定是加分项，不知道的话不一定就会被 pass。不过你写简历的时候尽量写清楚点，写清楚自己看过哪部分的源码。</p>
+<p>平时学习过程中，有时间的话可以多看看源码，对于提升自己的能力非常有帮助！</p>
+<p>如果你不知道阅读什么源码的话，可以先从 JDK 的几个常用集合看起。另外，我比较推荐看 Dubbo 的，因为感觉会稍微相对容易一点，模块划分清晰，注释也比较详细。搞清楚了 Dubbo 基本的原理之后，看起来就没那么吃力了。</p>
+<h3 id="有哪些值得阅读的优秀源码？"><a href="#有哪些值得阅读的优秀源码？" class="headerlink" title="有哪些值得阅读的优秀源码？"></a>有哪些值得阅读的优秀源码？</h3><blockquote>
+<p>下面有部分内容是摘自朋友写的一篇文章：<a target="_blank" rel="noopener" href="https://insights.thoughtworks.cn/how-to-improve-code-quality/">《如何提升代码质量 - Thoughtworks 洞见》</a></p>
+</blockquote>
+<h4 id="JDK"><a href="#JDK" class="headerlink" title="JDK"></a>JDK</h4><p><strong>为什么要看 JDK 源码？</strong></p>
+<ol>
+<li>JDK 源码是其它所有源码的基础，看懂了 JDK 源码再看其它的源码会达到事半功倍的效果。</li>
+<li>JDK 源码中包含大量的数据结构知识，是学习数据结构很好的资料，比如，链表、队列、散列表、红黑树、跳表、桶、堆、双端队列等。</li>
+<li>JDK 源码中包含大量的设计模式，是学习设计模式很好的资料，比如，适配器模式、模板方法模式、装饰器模式、迭代器模式、代理模式、工厂模式、命令模式、状态模式等。</li>
+<li>JDK 源码中包含大量 Java 的高阶知识，比如弱引用、Unsafe、CAS、锁原理、伪共享等，不看源码是很难学会这些知识的。</li>
+</ol>
+<p><strong>JDK 源码阅读顺序 ：</strong></p>
+<ol>
+<li>java.lang 包下的基本包装类(Integer、Long、Double、Float 等)，还有字符串相关类(String、StringBuffer、StringBuilder 等)、常用类(Object、Exception、Thread、ThreadLocal等)。</li>
+<li>java.lang.ref 包下的引用类(WeakReference、SoftReference 等)</li>
+<li>java.lang.annotation 包下的注解的相关类</li>
+<li>java.lang.reflect 包下的反射的相关类</li>
+<li>java.util 包下为一些工具类，主要由各种容器和集合类(Map、Set、List 等)</li>
+<li>java.util.concurrent 为并发包，主要是原子类、锁以及并发工具类</li>
+<li><a target="_blank" rel="noopener" href="http://java.io/">java.io </a>和 java.nio 可以结合着看</li>
+<li>java.time 主要包含时间相关的类，可以学习下 Java 8 新增的几个</li>
+<li><a target="_blank" rel="noopener" href="http://java.net/">java.net </a>包下为网络通信相关的类，可以阅读下 Socket 和 HTTPClient 相关代码</li>
+</ol>
+<p>源码量那么大，不要妄想一口气都看完。最好符合你当前的目的，比如你想搞懂多线程，你就主要看 JUC，想搞懂 IO 就多去看 NIO，想看常量池就去看 ClassFileParser。看模块的时候，要注意接口大于一切，或者说函数大于一切。先不要妄想搞懂所有细节，先找几个比较关键的函数，搞懂函数的作用（比如应该仔细分析一下函数名称和参数名称）然后再往下进行。</p>
+<p>在看 Java 类库的时候要多注意类是不是 abstract 的，是不是用的模板方法，多关注函数前的修饰词，这一般说明这个函数是给谁用的。多注意这些细节而不是傻傻过一遍逻辑，能从里面学到不少关于设计的东西。还可以注意什么地方是为了之前的设计而委曲求全的做法，毕竟一个这么多年的类库，肯定不是什么地方都是完美的。</p>
+<p>JDK 源码一定要看 Java 并发相关的源码， Doug Lea 的并发源码比较漂亮，一行行都是精华，非常值得阅读学习。</p>
+<h4 id="Spring"><a href="#Spring" class="headerlink" title="Spring"></a>Spring</h4><p>Spring 是一个开源的设计层面框架，它解决的是业务逻辑层和其他各层的松耦合问题，因此它将面向接口的编程思想贯穿整个系统应用。包括在此基础上衍生的 Spring MVC、 Spring Boot 、Spring Cloud 等，在现在企业中的应用越来越广泛。无论是设计思想，代码规范，还是设计模式，接口设计，类加载，都是非常优秀的源码。</p>
+<p>个人学习心得如下：先去看视频，大概熟悉一下 Spring 的使用情况，然后再去学习源码，此处可以阅读<a target="_blank" rel="noopener" href="https://book.douban.com/subject/25866350/">《Spring 源码深度解析》</a>，除了看书之外，记得打开 IDEA 查看对应的源码，如果能调试看看具体调用逻辑那就更好了。</p>
+<h4 id="Google-Guava"><a href="#Google-Guava" class="headerlink" title="Google Guava"></a>Google Guava</h4><p><a target="_blank" rel="noopener" href="https://github.com/google/guava">Google Guava</a> 是 Google 公司内部 Java 开发工具库的开源版本。Google 内部的很多 Java 项目都在使用它。它提供了一些 JDK 没有提供的功能，以及对 JDK 已有功能的增强功能。其中就包括：集合（Collections）、缓存（Caching）、原生类型支持（Primitives Support）、并发库（Concurrency Libraries）、通用注解（Common Annotation）、字符串处理（Strings Processing）、数学计算（Math）、I&#x2F;O、事件总线（EventBus）等等。</p>
+<h4 id="Netty"><a href="#Netty" class="headerlink" title="Netty"></a>Netty</h4><p><a target="_blank" rel="noopener" href="https://github.com/netty/netty">Netty</a> 是一个优秀的开源网络编程框架，我们平常经常接触的 Dubbo、RocketMQ、Elasticsearch、gRPC 等等都用到了 Netty。</p>
+<p>Netty 中使用了大量的设计模式以及优秀的设计原则。</p>
+<h4 id="Dubbo"><a href="#Dubbo" class="headerlink" title="Dubbo"></a>Dubbo</h4><p><a target="_blank" rel="noopener" href="https://github.com/apache/dubbo">Dubbo</a> 是一款优秀的国产 RPC 框架，其 SPI 自适应扩展、负载均衡实现、集群实现、服务调用过程等部分的源码都非常值得阅读和学习。</p>
+<h3 id="保姆级别的源码阅读教学"><a href="#保姆级别的源码阅读教学" class="headerlink" title="保姆级别的源码阅读教学"></a>保姆级别的源码阅读教学</h3><h4 id="如何高效阅读项目源码"><a href="#如何高效阅读项目源码" class="headerlink" title="如何高效阅读项目源码"></a>如何高效阅读项目源码</h4><p>⚠️ 注意：</p>
+<ul>
+<li><p>阅读源码之前，一定要先熟悉项目。你连 Dubbo 怎么使用、RPC 是个啥都不知道，就直接去看 Dubbo 源码的话，不是纯属扯淡么？</p>
+</li>
+<li><p>阅读源码之前，一定要对项目源码使用的技术有一个最基本的认识。</p>
+</li>
+</ul>
+<h5 id="从了解并使用项目开始"><a href="#从了解并使用项目开始" class="headerlink" title="从了解并使用项目开始"></a>从了解并使用项目开始</h5><p>开始看源码之前，自己花一些时间阅读以下官方的文档、使用教程。如果官方文档是英文的话，也可以找一些国人写的博客看看。不知道项目是用法和用途的就去看项目源代码的行为，无疑是在黑夜中穿针。</p>
+<h5 id="站在最外层概览项目设计"><a href="#站在最外层概览项目设计" class="headerlink" title="站在最外层概览项目设计"></a>站在最外层概览项目设计</h5><p>阅读源码之前，我比较推荐先站在最外层去熟悉项目整体架构和模块分包。掌控全局之后，我们方能以一个更正确的姿势畅游源码的世界。</p>
+<h5 id="从某个功能主线-问题出发研究项目源码"><a href="#从某个功能主线-问题出发研究项目源码" class="headerlink" title="从某个功能主线&#x2F;问题出发研究项目源码"></a>从某个功能主线&#x2F;问题出发研究项目源码</h5><p>一个比较成熟的项目的源码量是非常多，我们不可能都看完。比较推荐的方式就是通过一个功能主线（比如 Dubbo 是如何暴露服务的？）或者问题（比如 SpringBoot 的自动配置原理？）出发。</p>
+<h5 id="学会使用官方提供的-Demo"><a href="#学会使用官方提供的-Demo" class="headerlink" title="学会使用官方提供的 Demo"></a>学会使用官方提供的 Demo</h5><p>一般情况下，项目源码已经自带了一些 Demo 我们可以直接使用。这样可以方便我们：</p>
+<ul>
+<li><p>检验源码阅读环境是否搭建成功。</p>
+</li>
+<li><p>调试项目。</p>
+</li>
+</ul>
+<p>比如在 Dubbo 项目源码中，我们找到 dubbo-demo 这个文件夹，里面包含了 3 种不同类型（xml、api、annotation）使用方式的 demo，可以帮助我们节省掉大量写 Demo 的时间。</p>
+<h4 id="有哪些对阅读源码有帮助的建议"><a href="#有哪些对阅读源码有帮助的建议" class="headerlink" title="有哪些对阅读源码有帮助的建议"></a>有哪些对阅读源码有帮助的建议</h4><h5 id="学习常见的设计模式、设计原则"><a href="#学习常见的设计模式、设计原则" class="headerlink" title="学习常见的设计模式、设计原则"></a>学习常见的设计模式、设计原则</h5><p>一个优秀的开源项目一定会不可避免使用到一些设计模式，如果我们提前不了解这些设计模式的话，会加深自己理解代码的难度。</p>
+<p>另外，项目的代码还应该满足一些设计原则。对于，面向对象编程来说，下面这些原则都是我们应该非常熟练的。</p>
+<ol>
+<li><p>面向对象编程的思想（继承、封装、多态、抽象）</p>
+</li>
+<li><p>面向对象的七大设计原则：</p>
+<ul>
+<li><p>单一职责原则（Single Responsibility Principle, SRP）</p>
+</li>
+<li><p>开闭原则（Open Closed Principle，OCP）</p>
+</li>
+<li><p>里氏代换原则（Liskov Substitution Principle，LSP）</p>
+</li>
+<li><p>接口隔离原则（Interface Segregation Principle，ISP）</p>
+</li>
+<li><p>依赖反转原则（Dependency Inversion Principle，DIP）</p>
+</li>
+<li><p>合成&#x2F;聚合复用原则（Composite&#x2F;Aggregate Reuse Principle，CARP）</p>
+</li>
+<li><p>迪米特法则（Principle of Least Knowledge，PLK，也叫最小知识原则）</p>
+</li>
+</ul>
+</li>
+<li><p>软件设计的三大原则</p>
+<ul>
+<li><p>DRY（Don’t Repeat Yourself）原则：不要重复你自己</p>
+</li>
+<li><p>KISS（ Keep It Simple&#x2F;Stupid）原则：保持简单易懂</p>
+</li>
+<li><p>YAGNI （ You Ain’t Gonna Need It）原则 ：不要进行过度设计</p>
+</li>
+</ul>
+</li>
+</ol>
+<h5 id="学会看测试类"><a href="#学会看测试类" class="headerlink" title="学会看测试类"></a>学会看测试类</h5><p>测试类一方面可以说是对代码的稳定性的保障，让我们对自己写的代码更放心。另一方面测试本身也是对代码的一个说明，因此，很多人都会说：“好的测试即是文档”。通过测试类，我们可以很清楚地知道某一块代码具体是在干嘛。</p>
+<h5 id="学会调试"><a href="#学会调试" class="headerlink" title="学会调试"></a>学会调试</h5><p>通过调试，我们可以更直观地看到调用逻辑关系。通过变量信息，可以更直观地看到数据的变化过程，这对于我们理解代码以及找 bug 都是非常有帮助的。</p>
+<h5 id="掌握-IDE-常用的快捷键"><a href="#掌握-IDE-常用的快捷键" class="headerlink" title="掌握 IDE 常用的快捷键"></a>掌握 IDE 常用的快捷键</h5><p>熟悉常用的快捷键在源码阅读中非常有必要！这个是必须要会的。</p>
+<p>比如在 IDEA 中我们通过 command+o(mac)或者 ctrl+n(win&#x2F;linux)即可搜索类以及文件</p>
+<p><img src="/images/share/new-interview/6feb1a70-cf36-4632-b9ac-55eb430b87a0.png" alt="img"></p>
+<p>通过 command+f12(mac)或者 ctrl+f12(win&#x2F;linux)即可查看类的结构（函数、变量）</p>
+<p><img src="/images/share/new-interview/8b23a419-8370-42be-8ebc-02455f3b3236.png" alt="img"></p>
+<h5 id="使用一些插件辅助自己"><a href="#使用一些插件辅助自己" class="headerlink" title="使用一些插件辅助自己"></a>使用一些插件辅助自己</h5><p>有一些插件可以帮助我们理清源码的调用逻辑。比如 IDEA 插件 SequenceDiagram 就可以帮助我们一键生成方法的时序图。</p>
+<p><img src="/images/share/new-interview/a579fca9-a4c7-4c5b-8ec3-7816abc45084.png" alt="img"></p>
+<p>相关阅读：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzg2OTA0Njk0OA==&mid=2247494507&idx=2&sn=50764e6f24f3f48738770154d032dde4&chksm=cea1a4a0f9d62db6da5a45de6ac230eb108fb9bd8d71a93e10e3b0a929b9e01d885f158f80ba&scene=178&cur_album_id=1319419426898329600#rd">《安利一个 IDEA 骚操作:一键生成方法的序列图》</a></p>
+<h5 id="手撸一个简易版"><a href="#手撸一个简易版" class="headerlink" title="手撸一个简易版"></a>手撸一个简易版</h5><p>我们可以在学习某个具体的框架源码之前，自己先手撸一个简易版的框架。</p>
+<p>就比如我们学习 Dubbo 源码之前，我们自己撸一个简易版的 RPC 框架。</p>
+<p>自己动脑思考该怎么设计，功能该如何实现。</p>
+<p>做了这些尝试之后，我们再去看别人写的源码，收货一定会非常大！</p>
+<h3 id="轮子类开源项目"><a href="#轮子类开源项目" class="headerlink" title="轮子类开源项目"></a>轮子类开源项目</h3><h4 id="本地缓存"><a href="#本地缓存" class="headerlink" title="本地缓存"></a>本地缓存</h4><p><a target="_blank" rel="noopener" href="https://t.zsxq.com/RfyRrrv">cache</a> 是一个不错的轮子类项目，使用 Java 手写一个类似于 Redis 的单机版本地缓存(附详细教程)。 麻雀虽小五张俱全，支持数据缓存、缓存失效时间、数据淘汰策略（如 FIFO 、 LRU ）、RDB 和 AOF 持久化……。 并且，这个项目附带了 6 篇教程来讲解核心功能具体是怎么实现的。</p>
+<p>Github 地址：<a target="_blank" rel="noopener" href="https://github.com/houbb/cache">https://github.com/houbb/cache</a></p>
+<p><img src="/images/share/new-interview/657869aa-2426-4c4e-ac19-56599f12844e.png" alt="img"></p>
+<h4 id="RPC-框架"><a href="#RPC-框架" class="headerlink" title="RPC 框架"></a>RPC 框架</h4><p>guide-rpc-framework 是一款基于 Netty+Kyro+Zookeeper 实现的 RPC 框架。</p>
+<ul>
+<li>Github 地址: <a target="_blank" rel="noopener" href="https://github.com/Snailclimb/guide-rpc-framework">https://github.com/Snailclimb/guide-rpc-framework</a></li>
+<li>Gitee 地址 ：<a target="_blank" rel="noopener" href="https://gitee.com/SnailClimb/guide-rpc-framework">https://gitee.com/SnailClimb/guide-rpc-framework</a></li>
+</ul>
+<p>这个项目代码注释详细，结构清晰，并且集成了 Check Style 规范代码结构，非常适合阅读和学习。</p>
+<p><img src="/images/share/new-interview/3cda6de8-d577-40ac-ad08-fd6b5a7f594d.png" alt="img"></p>
+<p>并且，这个项目的 README 文档写的也非常认真。从 README 文档中，你就可以大概了解到这个 RPC 框架的设计思路以及前置技术。</p>
+<p><img src="/images/share/new-interview/c6f47c75-98cf-4d46-b8fb-bfdaf79ae97c.png" alt="img"></p>
+<h4 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h4><p>MYDB 是一个 Java 语言实现的简易版数据库，部分原理参照自 MySQL、PostgreSQL 和 SQLite。</p>
+<p>麻雀虽小，五脏俱全。MYDB 目前已经实现 MVCC、两种事务隔离级别（读提交和可重复读）、死锁处理、简陋的 SQL 解析等关系型数据库的核心功能。</p>
+<p>并且，MYDB 作者写了详细的实现教程，教程地址： <a target="_blank" rel="noopener" href="https://ziyang.moe/cs/project/mydb/">https://ziyang.moe/cs/project/mydb/</a></p>
+<p><img src="/images/share/new-interview/7e0ffdfd-5029-4335-bb2d-78d4e8983fef.png" alt="img"></p>
+<p>Github 地址：<a target="_blank" rel="noopener" href="https://github.com/CN-GuoZiyang/MYDB">https://github.com/CN-GuoZiyang/MYDB</a></p>
+<h4 id="编译器"><a href="#编译器" class="headerlink" title="编译器"></a>编译器</h4><p>Mini-Compiler 是一个 Mini 版本的入门级编译器，基于 Java 语言编写，有助于初学者了解面向对象编程语言编译器的运行原理。</p>
+<p>代码示例：</p>
+<p><img src="/images/share/new-interview/cb527169-4489-4076-88ea-dea046ed0b29.png" alt="img"></p>
+<p>可以看到，代码注释还是非常清晰的，一共只有 7 个类。</p>
+<p>不过，想要搞懂这个项目难度会远大于普通的业务类型项目，像核心类 Parser （语法解析器）的代码量接近有 2000 行（其它 6 个类代码量比较少）。</p>
+<p>Github 地址：<a target="_blank" rel="noopener" href="https://github.com/chenyuwangjs/A-tutorial-compiler-written-in-Java">https://github.com/chenyuwangjs/A-tutorial-compiler-written-in-Java</a> 。</p>
+<p>下面是一些相关的学习资料 ：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/xueweihan/p/16283249.html">写给小白的开源编译器</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Kf4y1V783/">700 行手写编译器（视频）</a></li>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/20436488/">《编译器设计》</a></li>
+</ul>
+<h3 id="国外公开课-Lab"><a href="#国外公开课-Lab" class="headerlink" title="国外公开课 Lab"></a>国外公开课 Lab</h3><h4 id="手写关系型数据库"><a href="#手写关系型数据库" class="headerlink" title="手写关系型数据库"></a>手写关系型数据库</h4><p>MIT 6.830&#x2F;6.814: Database Systems 这门课程的内容非常适合想要深入学习数据库原理的小伙伴。这门课程的 lab 是使用 Java 语言一步一步实现一个关系型数据库。</p>
+<p><img src="/images/share/new-interview/34a9da65-1e02-4aaa-80ce-5e5b34e4c6cf.png" alt="img"></p>
+<p>课程地址：<a target="_blank" rel="noopener" href="http://db.lcs.mit.edu/6.830/">http://db.lcs.mit.edu/6.830/</a> 。</p>
+<ul>
+<li>课程代码：<a target="_blank" rel="noopener" href="https://github.com/MIT-DB-Class/simple-db-hw">https://github.com/MIT-DB-Class/simple-db-hw</a> 。</li>
+<li>课程讲义：<a target="_blank" rel="noopener" href="https://github.com/MIT-DB-Class/course-info-2018/">https://github.com/MIT-DB-Class/course-info-2018/</a> 。</li>
+<li>课程视频：<a target="_blank" rel="noopener" href="https://www.youtube.com/playlist?list=PLfciLKR3SgqOxCy1TIXXyfTqKzX2enDjK">https://www.youtube.com/playlist?list=PLfciLKR3SgqOxCy1TIXXyfTqKzX2enDjK</a> 。</li>
+</ul>
+<p>网络上有一些相关的文章分享：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/hjw199666/category_9588041.html">https://blog.csdn.net/hjw199666/category_9588041.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/58595037">https://zhuanlan.zhihu.com/p/58595037</a></li>
+</ul>
+<p>另外，UCB CS186: Introduction to Database System 的这门课程 lab 也是使用 Java 实现一个关系型数据库。</p>
+<ul>
+<li>课程地址：<a target="_blank" rel="noopener" href="https://cs186berkeley.net/sp21/">https://cs186berkeley.net/sp21/</a> 。</li>
+<li>课程视频：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV13a411c7Qo">https://www.bilibili.com/video/BV13a411c7Qo</a> 。</li>
+</ul>
+<h4 id="手写分布式-KV-存储"><a href="#手写分布式-KV-存储" class="headerlink" title="手写分布式 KV 存储"></a>手写分布式 KV 存储</h4><p>MIT6.824: Distributed System 这门课程出品自 MIT 大名鼎鼎的 PDOS 实验室，授课老师 Robert Morris 教授。Robert Morris 曾是一位顶尖黑客，世界上第一个蠕虫病毒 Morris 病毒就是出自他之手。</p>
+<p>这门课程的 lab 会循序渐进带你实现一个基于 Raft 共识算法的 KV-store 框架，让你在痛苦的 debug 中体会并行与分布式带来的随机性和复杂性。</p>
+<ul>
+<li>课程网站：<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/schedule.html">https://pdos.csail.mit.edu/6.824/schedule.html</a> 。</li>
+<li>课程视频（中文翻译）：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1R7411t71W">https://www.bilibili.com/video/BV1R7411t71W</a> 。</li>
+</ul>
+<p>相关资料：</p>
+<ul>
+<li>MIT6.824: Distributed System（中文翻译 wiki）： <a target="_blank" rel="noopener" href="https://mit-public-courses-cn-translatio.gitbook.io/mit6-824/">https://mit-public-courses-cn-translatio.gitbook.io/mit6-824/</a></li>
+<li>如何的才能更好地学习 MIT6.824 分布式系统课程？：<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/29597104">https://www.zhihu.com/question/29597104</a></li>
+</ul>
+<h2 id="项目经验常见问题解答（补充）"><a href="#项目经验常见问题解答（补充）" class="headerlink" title="项目经验常见问题解答（补充）"></a><strong>项目经验常见问题解答（补充）</strong></h2><p>你在项目经历中不涉及的知识点，但在技能介绍中提到的知识点也很大概率会被问到。像 Redis 这种基本是面试 Java 后端岗位必备的技能，我觉得大部分面试官应该都会问。</p>
+<p>一个项目的话不是不可以，但你一定要保证这个项目不能太鸡肋。如果太鸡肋的话，简历关可能就直接 pass，而且面试官提问都不好提。</p>
+<p>如果你没有项目经验的话，建议你尽量一边学习各种框架和中间件一边做一个完整且有一些亮点的项目作为自己的项目经验。</p>
+<h3 id="什么项目算是有亮点的或者是面试官认为有价值的？"><a href="#什么项目算是有亮点的或者是面试官认为有价值的？" class="headerlink" title="什么项目算是有亮点的或者是面试官认为有价值的？"></a>什么项目算是有亮点的或者是面试官认为有价值的？</h3><p>最有价值的当然是你参加各种大公司组织的各种大赛（比如阿里的天池软件设计大赛）而做的项目，如果参加这种赛事能获奖的话，项目含金量非常高。即使没获奖也没啥，也可以写简历上。</p>
+<p><img src="/images/share/new-interview/5fd25717-d7cd-492b-b964-84913ce4621f-1666096434511182.png" alt="img"></p>
+<p>跟着老师或者普通公司做的项目的话，一般都是面向企业级别，一般很少会用到分布式&#x2F;微服务，基本都是单机，这种项目的含金量稍低，即使你的业务很复杂。遇到这种情况可以考虑说自己去对项目进行改进，别怕花时间，某个时间用心做好一件事情就好比如你对项目的数据模型进行改进、引入缓存提高访问速度等等。</p>
+<p>自己做的项目的话，我觉得一定要：尽量和别人避开，别网上流传一个项目，然后自己名字不改，啥也不做就写简历上了。</p>
+<h3 id="项目太简单怎么办"><a href="#项目太简单怎么办" class="headerlink" title="项目太简单怎么办?"></a>项目太简单怎么办?</h3><p>项目太简单的话，不光是影响简历通过的概率，还会影响到你的面试准备，毕竟面试中的重点就是项目经历涉及到的知识点，如果你的项目经历比较简单的话，面试官直接不知道问啥了。个人建议你可以参考《Java 面试指北》中对应的文章对项目经历进行完善改进！</p>
+<p><img src="/images/share/new-interview/30362dad-4243-4d2c-94c6-49217df1a32d.png" alt="img"></p>
+<p>另外，你还要保证自己的项目的不是烂大街那种（比如商城、博客……），自己参加比赛做的项目或者是企业真实项目是比较好的。</p>
+<h3 id="如何优化项目经历性价比更高？"><a href="#如何优化项目经历性价比更高？" class="headerlink" title="如何优化项目经历性价比更高？"></a>如何优化项目经历性价比更高？</h3><p>面试之前，你可以跟着网上的教程，从性能优化方向入手去改进一下自己的项目。为什么建议从性能优化方向入手呢？因为性能优化方向改进相比较于业务方向的改进性价比会更高，更容易体现在简历上。并且，更重要的是，性能优化方向更容易在面试之前提前准备，面试官也更喜欢提问这类问题。</p>
+<p>你项目没有用到的性能优化手段，只要你搞懂吃透并且觉得合理，你就完全可以写在简历上。不过，建议你还是要实践一下，压测一波，取得的成果也要量化一下比如我使用 xxx 技术解决了 xxx 问题，系统 qps 从 xxx 提高到了 xxx。</p>
+<h3 id="必须是微服务项目才有亮点？"><a href="#必须是微服务项目才有亮点？" class="headerlink" title="必须是微服务项目才有亮点？"></a>必须是微服务项目才有亮点？</h3><p>个人认为也没必要非要去做微服务或者分布式项目，不一定对你面试有利。微服务或者分布式项目涉及的知识点太多，一般人很难吃透。并且，这类项目其实对于校招生来说稍微有一点超标了。即使你做出来，很多面试官也会认为不是你独立完成的。</p>
+<p>其实，你能把一个单体项目做到极致也很好，对于个人能力提升不比做微服务或者分布式项目差。如何做到极致？代码质量这里就不提了，更重要的是你要尽量让自己的项目有一些亮点（比如你是如何提升项目性能的、如何解决项目中存在的一个痛点的），项目经历取得的成果尽量要量化一下比如我使用 xxx 技术解决了 xxx 问题，系统 qps 从 xxx 提高到了 xxx。</p>
+<h3 id="如何准备项目经历？"><a href="#如何准备项目经历？" class="headerlink" title="如何准备项目经历？"></a>如何准备项目经历？</h3><p>你可以从下面几个方面来准备项目的回答（欢迎大家补充）：</p>
+<ol>
+<li>你对项目整体设计的一个感受（面试官可能会让你画系统的架构图）</li>
+<li>你在这个项目中你负责了什么、做了什么、担任了什么角色。</li>
+<li>从这个项目中你学会了那些东西，使用到了那些技术，学会了那些新技术的使用。</li>
+<li>你在这个项目中是否解决过什么问题？怎么解决的？收获了什么？</li>
+<li>你的项目用到了哪些技术？这些技术你吃透了没有？举个例子，你的项目经历使用了 Seata 来做分布式事务，那 Seata 相关的问题你要提前准备一下吧，比如说 Seata 支持哪些配置中心、Seata 的事务分组是怎么做的、Seata 支持哪些事务模式，怎么选择？</li>
+<li>你在这个项目中犯过的错误，最后是怎么弥补的？</li>
+</ol>
+<h2 id="去外包对自己的简历有影响么？"><a href="#去外包对自己的简历有影响么？" class="headerlink" title="去外包对自己的简历有影响么？"></a><strong>去外包对自己的简历有影响么？</strong></h2><p>有很多初入职场找工作的小伙伴，由于没有什么经验，自己的能力也一般，加上竞争压力太大。导致自己都是基本收到都是各种外包机构的面试邀请，最后，没办法就去了外包公司。</p>
+<p>然后，很多小伙伴就会担心自己的外包工作经历会对自己的简历产生影响。</p>
+<p>比如下面这个就是一位星球的匿名用户的提问。</p>
+<p><img src="/images/share/new-interview/0e5f4e3b-8493-49ca-9a9d-0d0b159946c5.png" alt="img"></p>
+<p>其实，去外包对简历的影响，主要还是看你去的公司和经历的项目，比如你在 ThoughtWorks 做外包的话我觉得对你的简历就没啥影响，甚至还可能是加分项。我的很多同事跳槽，都是去了字节、阿里这些大公司。</p>
+<p>另外，去了外包之后以后只能混外包这种说法有点自欺欺人。</p>
+<p>首先，外包的技术深度确实不比大公司，这点没办法，根本属性决定了。然后，外包公司一般会让你会很多东西，什么东西都想让你了解一下，这可能会导致你没有一门比较精通的技术。你是Java程序员，下个项目需要你是IOS开发，然后你就要自己学，这个还是很坑的。</p>
+<p>不过，刚毕业的话在外包干两年还是能学到一些东西的，因为你在外包公司的话，大概率会经历大量的实战项目。。</p>
+<p>其实，最重要的是，自己平时要注意多多思考和学习，勿要浮于表面就好了。</p>
+<p>很多人抱怨抱怨公司工作强度很多大，就我来看，很多外包公司的工作强度甚至比不上甲方的程序员。</p>
+<p>按照大众的话来说，最好是不要去外包公司，这点是没啥问题的。不过， 如果说你目前正在外包公司工作或者你只能找到外包工作的话，不要一味抱怨，只要自己能学到东西就好！</p>
+<h2 id="接触不到高并发场景咋办？如何获得高并发的经验？"><a href="#接触不到高并发场景咋办？如何获得高并发的经验？" class="headerlink" title="接触不到高并发场景咋办？如何获得高并发的经验？"></a><strong>接触不到高并发场景咋办？如何获得高并发的经验？</strong></h2><p>不论是应届生还是有几年工作经验的程序员，都可能会面临一个问题：<strong>接触不到高并发场景</strong>。</p>
+<p>不要慌！说实话，能接触到高并发这类业务场景的人还是极少数的。即使在阿里、京东这种公司，你也还是很有可能接触不到。</p>
+<p>我在大学那会的时候，自己就比较喜欢捣鼓各种高并发相关的技术了（还是因为太卷，工作之后实际并没有怎么用到，哈哈哈），自己在手动搭建过 Redis 集群、Zookeeeper 集群，动手实现过分库分表、读写分离。</p>
+<p>在介绍方法之前，我们首先知道 <strong>高并发系统设计的三大目标</strong> ：</p>
+<ul>
+<li><strong>高性能</strong> ：系统的处理请求的速度很快，响应时间很短。</li>
+<li><strong>高可用</strong> ：系统几乎可以一直正常提供服务。也就是说系统具备较高的无故障运行的能力。</li>
+<li><strong>可扩展</strong> ：流量高峰时能否在短时间内完成扩容，更平稳地承接峰值流量，比如双 11 活动、明星离婚、明星恋爱等热点事件。</li>
+</ul>
+<p><strong>实现高性能的常用手段</strong>  ：</p>
+<ul>
+<li><p>数据库</p>
+<ul>
+<li>分库分表&amp;读写分离</li>
+<li>NoSQL</li>
+</ul>
+</li>
+<li><p>缓存</p>
+</li>
+<li><p>消息队列 （待重构）</p>
+</li>
+<li><p>负载均衡</p>
+</li>
+<li><p>池化技术</p>
+</li>
+<li><p>……</p>
+</li>
+</ul>
+<p><strong>实现高可用的常用手段  ：</strong></p>
+<ul>
+<li>限流</li>
+<li>降级</li>
+<li>熔断</li>
+<li>排队</li>
+<li>集群</li>
+<li>超时和重试机制</li>
+<li>灾备设计</li>
+<li>异地多活</li>
+</ul>
+<p><strong>实现可扩展架构的常用手段：</strong></p>
+<ul>
+<li>分层架构：面向流程拆分</li>
+<li>SOA、微服务：面向服务拆分</li>
+<li>微内核架构：面向功能拆分</li>
+</ul>
+<p>知道了高并发系统设计相关的概念和手段之后，废话不多说，直接推荐两种我觉得比较靠谱的方法。</p>
+<p><strong>第一种方法是自己研究某个技术然后对已有项目进行改进，具体步骤如下：</strong></p>
+<ol>
+<li>自己研究某个技术比如读写分离。</li>
+<li>将自己研究的成果应用到自己的项目比如为项目增加读写分离来提高读数据库的速度。</li>
+<li>想一想项目用了某个技术比如读写分离之后，会不会遇到什么问题，项目的性能到底提升了多少。如果你能模拟一下真实场景就更好了，既能真正学到，又能让自己项目经历更真实。</li>
+<li>简单复盘总结一下自己对项目所做的完善改进。</li>
+</ol>
+<p>这里要说明一点的是：<strong>一定不要为了学习实践某个技术而直接用在自己公司的项目上。</strong></p>
+<p>技术是为了服务业务的，没必要用的技术就不要用！我之前有个同事天天喜欢在项目上用自己学到的新技术，结果，有一天就出现生产问题了。我现在想着这件事，都想锤他！</p>
+<p><strong>你完全可以私下对项目进行改进</strong>。 甚至说，你就只是搞懂了这个技术，并没有将其用在真实的项目中。面试官会专门去调查你这个项目么？那大概率是不会。不过，一定要确保自己是真的搞懂了！</p>
+<p>我们只是迫于压力，为了找工作而简单润色一下项目经历而已嘛！</p>
+<p><strong>第二种方法是你可以跟着视频&#x2F;教程做一个分布式相关的项目</strong>，然后把它吃透，最好还可以对这个项目进行改进，具体步骤如下：</p>
+<ol>
+<li>跟着视频&#x2F;教程写一个分布式相关的项目（自己从头开始做也是一样的）。</li>
+<li>深入研究并搞懂项目涉及到的一些技术。</li>
+<li>思考有没有可以改进的地方？</li>
+<li>思考线上环境可能会有一些什么问题出现？该怎么解决？</li>
+<li>简单复盘总结复盘一下自己从这个项目中学到的什么东西。</li>
+</ol>
+<p>我在大学的时候就是通过这种方法获得的高并发相关的经验。我还记得我当时做的那个分布式项目使用到了 Redis 是单机并且消息队列用的是已经淘汰的 ActiveMQ。所以，我就自己搭建了 Redis 集群，模拟各种可能出现的问题。同时，我使用 RocketMQ 替换了 ActiveMQ 并提取封装了消息队列相关的代码。</p>
+<p>通过上面这两种方法来获得高并发经验的话，还有一点非常重要： <strong>自己不光要模拟一些生产环境可能会遇到的问题，还要知道这些问题是怎么解决的</strong>。 就比如说你用到了 Redis 的话，你自己肯定要私下模拟一下缓存穿透、单机内存不够用、Redis突然宕机等等情况。</p>
+<p>基本上，你用到的大部分中间件可能会遇到的问题，你都能够在网上找到对应的案例和解答。多花点时间看看，自己实践一下，研究思考一下。这样的话，在面试中才不会掉链子。</p>
+<h2 id="Java-优质面试视频推荐"><a href="#Java-优质面试视频推荐" class="headerlink" title="Java 优质面试视频推荐"></a><strong>Java 优质面试视频推荐</strong></h2><p>文字看累了，还可以看看视频！推荐几个不错的 Java 面试相关的视频。</p>
+<p><strong>1、中华石杉老师的《Java 面试突击第一季》</strong></p>
+<p>即使是19年那会出来的视频，放到现在依然是适用的！对于想要进 Java 生态为主的公司比如美团、阿里非常有帮助！主要讲的是高并发高可用相关的内容。</p>
+<p>地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1B4411h7Nz">https://www.bilibili.com/video/BV1B4411h7Nz</a></p>
+<p><img src="/images/share/new-interview/81016677-6496-4a18-bd56-97ae95537f9b.png" alt="img"></p>
+<p>这份资料对应的笔记：<a target="_blank" rel="noopener" href="https://doocs.github.io/advanced-java/#/">https://doocs.github.io/advanced-java/#/</a></p>
+<p><strong>2、图灵学院的《Java 常见面试题详解系列》</strong></p>
+<p>涵盖 Java 核心知识、数据库以及常见框架，拿数据库和缓存来说：数据库以面试常问的 MySQL 为例介绍了索引、锁、事务、主从同步、MyISAM 和 InnoDB 的区别、分库分表、慢查询处理等面试题。缓存以面试常问的 Redis 为例介绍了 Redis 常见数据库结构、缓存过期策略、 缓存穿透、缓存击穿、缓存雪崩、数据库和缓存一致性保证、Redis 高可用等面试题。</p>
+<p>地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1XU4y1J7Dr">https://www.bilibili.com/video/BV1XU4y1J7Dr</a></p>
+<p><strong>3、尚硅谷周阳老师的 《Java 面试题第三季》</strong></p>
+<p><img src="/images/share/new-interview/fab45673-7a8f-4f24-b4dd-f8c2b5d010e6.png" alt="img"></p>
+<p>Java 培训领域比较出名的周阳老师的作品，内容涵盖算法、Java 核心知识、数据库以及常见框架。</p>
+<p>可以重点看看并发和 Spring 这块，比其他老师讲的要深入和好理解很多。</p>
+<p>地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Hy4y1B78T">https://www.bilibili.com/video/BV1Hy4y1B78T</a></p>
+<p>前两季视频地址 ：</p>
+<ul>
+<li>Java 面试题第一季 ：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Eb411P7bP">https://www.bilibili.com/video/BV1Eb411P7bP</a></li>
+<li>Java 面试题第二季 ：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV18b411M7xz">https://www.bilibili.com/video/BV18b411M7xz</a></li>
+</ul>
+<p><strong>4、图灵的《分布式面试核心面试题系列》</strong></p>
+<p><img src="/images/share/new-interview/65d7e277-d1b4-439b-8c0e-e74d1062783e.png" alt="img"></p>
+<p>主要是分布式相关的内容，涵盖负载均衡、分布式 ID、分布式事务、Dubbo、Zookeeper 、Redis。</p>
+<p>地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Mz4y1Z7bM">https://www.bilibili.com/video/BV1Mz4y1Z7bM</a></p>
+<p>内容比较杂，可以挑选自己比较感兴趣面试题学习。可以重点看看数据库这块，对于常见的 MySQL 面试题比如 MySQL 索引数据结构介绍的比较详细。</p>
+<p>地址：<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1yA411u7WL">https://www.bilibili.com/video/BV1yA411u7WL</a></p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>如果觉得不错，请作者喝杯咖啡！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="程序员波特 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.jpg" alt="程序员波特 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/images/wechat_channel.jpg">
+            <span class="icon">
+              <i class="fab fa-weixin"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/" rel="tag"># 面试题</a>
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/01/01/share/new-interview/framework/" rel="prev" title="Java框架篇相关面试题">
+      <i class="fa fa-chevron-left"></i> Java框架篇相关面试题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/01/02/share/new-interview/fileUpload/" rel="next" title="如何解决大文件上传问题?">
+      如何解决大文件上传问题? <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%AD%A6%E4%B9%A0%E6%BA%90%E7%A0%81%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">为什么要学习源码？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E4%BC%98%E7%A7%80%E7%9A%84%E4%BB%A3%E7%A0%81%E5%AE%9E%E8%B7%B5"><span class="nav-number">1.1.</span> <span class="nav-text">学习优秀的代码实践</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%80%9F%E9%89%B4"><span class="nav-number">1.2.</span> <span class="nav-text">借鉴</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%A2%E8%AF%95%E9%9C%80%E8%A6%81"><span class="nav-number">1.3.</span> <span class="nav-text">面试需要</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E9%9C%80%E6%B1%82"><span class="nav-number">1.4.</span> <span class="nav-text">项目需求</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E9%9D%A2%E8%AF%95%E8%BF%99%E5%9D%97%E4%BC%9A%E6%80%8E%E4%B9%88%E9%97%AE%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">源码面试这块会怎么问？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%89%E5%93%AA%E4%BA%9B%E5%80%BC%E5%BE%97%E9%98%85%E8%AF%BB%E7%9A%84%E4%BC%98%E7%A7%80%E6%BA%90%E7%A0%81%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">有哪些值得阅读的优秀源码？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#JDK"><span class="nav-number">3.1.</span> <span class="nav-text">JDK</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Spring"><span class="nav-number">3.2.</span> <span class="nav-text">Spring</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Google-Guava"><span class="nav-number">3.3.</span> <span class="nav-text">Google Guava</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Netty"><span class="nav-number">3.4.</span> <span class="nav-text">Netty</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dubbo"><span class="nav-number">3.5.</span> <span class="nav-text">Dubbo</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%9D%E5%A7%86%E7%BA%A7%E5%88%AB%E7%9A%84%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E6%95%99%E5%AD%A6"><span class="nav-number">4.</span> <span class="nav-text">保姆级别的源码阅读教学</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%AB%98%E6%95%88%E9%98%85%E8%AF%BB%E9%A1%B9%E7%9B%AE%E6%BA%90%E7%A0%81"><span class="nav-number">4.1.</span> <span class="nav-text">如何高效阅读项目源码</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BB%8E%E4%BA%86%E8%A7%A3%E5%B9%B6%E4%BD%BF%E7%94%A8%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%A7%8B"><span class="nav-number">4.1.1.</span> <span class="nav-text">从了解并使用项目开始</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%AB%99%E5%9C%A8%E6%9C%80%E5%A4%96%E5%B1%82%E6%A6%82%E8%A7%88%E9%A1%B9%E7%9B%AE%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.1.2.</span> <span class="nav-text">站在最外层概览项目设计</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BB%8E%E6%9F%90%E4%B8%AA%E5%8A%9F%E8%83%BD%E4%B8%BB%E7%BA%BF-%E9%97%AE%E9%A2%98%E5%87%BA%E5%8F%91%E7%A0%94%E7%A9%B6%E9%A1%B9%E7%9B%AE%E6%BA%90%E7%A0%81"><span class="nav-number">4.1.3.</span> <span class="nav-text">从某个功能主线&#x2F;问题出发研究项目源码</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AD%A6%E4%BC%9A%E4%BD%BF%E7%94%A8%E5%AE%98%E6%96%B9%E6%8F%90%E4%BE%9B%E7%9A%84-Demo"><span class="nav-number">4.1.4.</span> <span class="nav-text">学会使用官方提供的 Demo</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%89%E5%93%AA%E4%BA%9B%E5%AF%B9%E9%98%85%E8%AF%BB%E6%BA%90%E7%A0%81%E6%9C%89%E5%B8%AE%E5%8A%A9%E7%9A%84%E5%BB%BA%E8%AE%AE"><span class="nav-number">4.2.</span> <span class="nav-text">有哪些对阅读源码有帮助的建议</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%B8%B8%E8%A7%81%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E3%80%81%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99"><span class="nav-number">4.2.1.</span> <span class="nav-text">学习常见的设计模式、设计原则</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AD%A6%E4%BC%9A%E7%9C%8B%E6%B5%8B%E8%AF%95%E7%B1%BB"><span class="nav-number">4.2.2.</span> <span class="nav-text">学会看测试类</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AD%A6%E4%BC%9A%E8%B0%83%E8%AF%95"><span class="nav-number">4.2.3.</span> <span class="nav-text">学会调试</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%8E%8C%E6%8F%A1-IDE-%E5%B8%B8%E7%94%A8%E7%9A%84%E5%BF%AB%E6%8D%B7%E9%94%AE"><span class="nav-number">4.2.4.</span> <span class="nav-text">掌握 IDE 常用的快捷键</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E4%B8%80%E4%BA%9B%E6%8F%92%E4%BB%B6%E8%BE%85%E5%8A%A9%E8%87%AA%E5%B7%B1"><span class="nav-number">4.2.5.</span> <span class="nav-text">使用一些插件辅助自己</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%89%8B%E6%92%B8%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%89%88"><span class="nav-number">4.2.6.</span> <span class="nav-text">手撸一个简易版</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AE%E5%AD%90%E7%B1%BB%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE"><span class="nav-number">5.</span> <span class="nav-text">轮子类开源项目</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E7%BC%93%E5%AD%98"><span class="nav-number">5.1.</span> <span class="nav-text">本地缓存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RPC-%E6%A1%86%E6%9E%B6"><span class="nav-number">5.2.</span> <span class="nav-text">RPC 框架</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-number">5.3.</span> <span class="nav-text">数据库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%99%A8"><span class="nav-number">5.4.</span> <span class="nav-text">编译器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BD%E5%A4%96%E5%85%AC%E5%BC%80%E8%AF%BE-Lab"><span class="nav-number">6.</span> <span class="nav-text">国外公开课 Lab</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%8B%E5%86%99%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-number">6.1.</span> <span class="nav-text">手写关系型数据库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%8B%E5%86%99%E5%88%86%E5%B8%83%E5%BC%8F-KV-%E5%AD%98%E5%82%A8"><span class="nav-number">6.2.</span> <span class="nav-text">手写分布式 KV 存储</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E7%BB%8F%E9%AA%8C%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E8%A7%A3%E7%AD%94%EF%BC%88%E8%A1%A5%E5%85%85%EF%BC%89"><span class="nav-number"></span> <span class="nav-text">项目经验常见问题解答（补充）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E9%A1%B9%E7%9B%AE%E7%AE%97%E6%98%AF%E6%9C%89%E4%BA%AE%E7%82%B9%E7%9A%84%E6%88%96%E8%80%85%E6%98%AF%E9%9D%A2%E8%AF%95%E5%AE%98%E8%AE%A4%E4%B8%BA%E6%9C%89%E4%BB%B7%E5%80%BC%E7%9A%84%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">什么项目算是有亮点的或者是面试官认为有价值的？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E5%A4%AA%E7%AE%80%E5%8D%95%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="nav-number">2.</span> <span class="nav-text">项目太简单怎么办?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%E9%A1%B9%E7%9B%AE%E7%BB%8F%E5%8E%86%E6%80%A7%E4%BB%B7%E6%AF%94%E6%9B%B4%E9%AB%98%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">如何优化项目经历性价比更高？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BF%85%E9%A1%BB%E6%98%AF%E5%BE%AE%E6%9C%8D%E5%8A%A1%E9%A1%B9%E7%9B%AE%E6%89%8D%E6%9C%89%E4%BA%AE%E7%82%B9%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">必须是微服务项目才有亮点？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%87%86%E5%A4%87%E9%A1%B9%E7%9B%AE%E7%BB%8F%E5%8E%86%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">如何准备项目经历？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%BB%E5%A4%96%E5%8C%85%E5%AF%B9%E8%87%AA%E5%B7%B1%E7%9A%84%E7%AE%80%E5%8E%86%E6%9C%89%E5%BD%B1%E5%93%8D%E4%B9%88%EF%BC%9F"><span class="nav-number"></span> <span class="nav-text">去外包对自己的简历有影响么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A5%E8%A7%A6%E4%B8%8D%E5%88%B0%E9%AB%98%E5%B9%B6%E5%8F%91%E5%9C%BA%E6%99%AF%E5%92%8B%E5%8A%9E%EF%BC%9F%E5%A6%82%E4%BD%95%E8%8E%B7%E5%BE%97%E9%AB%98%E5%B9%B6%E5%8F%91%E7%9A%84%E7%BB%8F%E9%AA%8C%EF%BC%9F"><span class="nav-number"></span> <span class="nav-text">接触不到高并发场景咋办？如何获得高并发的经验？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-%E4%BC%98%E8%B4%A8%E9%9D%A2%E8%AF%95%E8%A7%86%E9%A2%91%E6%8E%A8%E8%8D%90"><span class="nav-number"></span> <span class="nav-text">Java 优质面试视频推荐</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="程序员波特"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">程序员波特</p>
+  <div class="site-description" itemprop="description">程序员编程资料站</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">137</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">蜀ICP备2023040197号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">程序员波特</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

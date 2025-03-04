@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="排行榜到处可见，比如直播间送礼物的排行榜、朋友圈的微信步数排行榜、王者荣耀中的段位排行榜等等。  今天让我们从程序设计的角度，来看看如何设计一个排行榜！ 我们先从最基础的实现方式来说起。 MySQL 的 ORDER BY 关键字第一种要介绍的实现方式就是直接使用 MySQL 的 ORDER BY 关键字。 ORDER BY 关键字可以对查询出来的数据按照指定的字段进行排序。 我相信但凡是学过 My">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何设计一个排行榜？">
+<meta property="og:url" content="http://example.com/2025/01/02/share/new-interview/rpc/index.html">
+<meta property="og:site_name" content="程序员波特的个人博客">
+<meta property="og:description" content="排行榜到处可见，比如直播间送礼物的排行榜、朋友圈的微信步数排行榜、王者荣耀中的段位排行榜等等。  今天让我们从程序设计的角度，来看看如何设计一个排行榜！ 我们先从最基础的实现方式来说起。 MySQL 的 ORDER BY 关键字第一种要介绍的实现方式就是直接使用 MySQL 的 ORDER BY 关键字。 ORDER BY 关键字可以对查询出来的数据按照指定的字段进行排序。 我相信但凡是学过 My">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/share/new-interview/2021060714195385.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/up-d90863bb4c39ef96f9893244b9d5f1376ac.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/up-c25cf4cc1d4d3a484b4db93672138b8c104.png">
+<meta property="article:published_time" content="2025-01-02T01:00:00.000Z">
+<meta property="article:modified_time" content="2025-03-03T14:06:21.369Z">
+<meta property="article:author" content="程序员波特">
+<meta property="article:tag" content="面试题">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/share/new-interview/2021060714195385.png">
+
+<link rel="canonical" href="http://example.com/2025/01/02/share/new-interview/rpc/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>如何设计一个排行榜？ | 程序员波特的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程序员波特的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个小而美的程序员编程资料站</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/01/02/share/new-interview/rpc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="程序员波特">
+      <meta itemprop="description" content="程序员编程资料站">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程序员波特的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何设计一个排行榜？
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-01-02 09:00:00" itemprop="dateCreated datePublished" datetime="2025-01-02T09:00:00+08:00">2025-01-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-03-03 22:06:21" itemprop="dateModified" datetime="2025-03-03T22:06:21+08:00">2025-03-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BC%81%E4%B8%9A%E7%BA%A7%E5%9C%BA%E6%99%AF%E9%9D%A2%E8%AF%95%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">企业级场景面试题</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>排行榜到处可见，比如直播间送礼物的排行榜、朋友圈的微信步数排行榜、王者荣耀中的段位排行榜等等。</p>
+<p><img src="/images/share/new-interview/2021060714195385.png" alt="img"></p>
+<p>今天让我们从程序设计的角度，来看看如何设计一个排行榜！</p>
+<p>我们先从最基础的实现方式来说起。</p>
+<h4 id="MySQL-的-ORDER-BY-关键字"><a href="#MySQL-的-ORDER-BY-关键字" class="headerlink" title="MySQL 的 ORDER BY 关键字"></a>MySQL 的 ORDER BY 关键字</h4><p>第一种要介绍的实现方式就是直接使用 MySQL 的 ORDER BY 关键字。 ORDER BY 关键字可以对查询出来的数据按照指定的字段进行排序。</p>
+<p>我相信但凡是学过 MySQL 的人，一定都用过 ORDER BY 关键字！没用过的，先不要看下面的文章了，麻烦默默反思 3 分钟。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> column1, column2, ...</span><br><span class="line"><span class="keyword">FROM</span> table_name</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> column1, column2, ... <span class="keyword">ASC</span><span class="operator">/</span><span class="keyword">DESC</span>;</span><br></pre></td></tr></table></figure>
+
+<p>我之前在一个用户数据量不大（6w 用户左右）并且排序需求并不复杂的项目中使用的就是这种方法。</p>
+<p>这种方式的优缺点也比较明显。<strong>好处是比较简单，不需要引入额外的组件，成本比较低。坏处就是每次生成排行榜都比较耗时，对数据库的性能消耗非常之大，数据量一大，业务场景稍微复杂一点就顶不住了。</strong></p>
+<p>我们这里创建一个名为 cus_order 的表，来实际测试一下这种排序方式。为了测试方便， cus_order 这张表只有 id、score、name这 3 个字段。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> `cus_order` (</span><br><span class="line">  `id` <span class="type">int</span>(<span class="number">11</span>) unsigned <span class="keyword">NOT NULL</span> AUTO_INCREMENT,</span><br><span class="line">  `score` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NOT NULL</span>,</span><br><span class="line">  `name` <span class="type">varchar</span>(<span class="number">11</span>) <span class="keyword">NOT NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">  <span class="keyword">PRIMARY KEY</span> (`id`)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB AUTO_INCREMENT<span class="operator">=</span><span class="number">100000</span> <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>utf8mb4;</span><br></pre></td></tr></table></figure>
+
+<p>我们定义一个简单的存储过程（PROCEDURE）来插入 100w 测试数据。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">DELIMITER ;;</span><br><span class="line"><span class="keyword">CREATE</span> DEFINER<span class="operator">=</span>`root`@`<span class="operator">%</span>`<span class="keyword">PROCEDURE</span> `BatchinsertDataToCusOder`(<span class="keyword">IN</span> start_num <span class="type">INT</span>, <span class="keyword">IN</span> max_num <span class="type">INT</span>)</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">	<span class="keyword">DECLARE</span> i <span class="type">INT</span> <span class="keyword">default</span> start_num;</span><br><span class="line">	WHILE i <span class="operator">&lt;</span> max_num DO</span><br><span class="line">		<span class="keyword">insert into</span> `cus_order`(`id`,`score`,`name`)</span><br><span class="line">		<span class="keyword">values</span> (i,RAND()<span class="operator">*</span><span class="number">1000000</span>,CONCAT(`<span class="keyword">user</span>`,i));</span><br><span class="line">		<span class="keyword">SET</span> i<span class="operator">=</span>i<span class="operator">+</span><span class="number">1</span>;</span><br><span class="line">	<span class="keyword">END</span> WHILE;</span><br><span class="line"><span class="keyword">END</span>;;</span><br><span class="line">DELIMITER;</span><br></pre></td></tr></table></figure>
+
+<p>存储过程定义完成之后，我们执行存储过程即可！</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CALL</span> BatchinsertDataToCusOder(<span class="number">1</span>, <span class="number">1000000</span>); # 插入<span class="number">100</span>w<span class="operator">+</span>的随机数据</span><br></pre></td></tr></table></figure>
+
+<p>等待一会，100w 的测试数据就插入完成了！</p>
+<p>为了能够对这 100w 数据按照 score 进行排序，我们需要执行下面的 SQL 语句。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> `score`,`name` <span class="keyword">FROM</span> `cus_order` <span class="keyword">ORDER</span> <span class="keyword">BY</span> `score` <span class="keyword">DESC</span>;#降序排序</span><br></pre></td></tr></table></figure>
+
+<p>为了能够查看这套 SQL 语句的执行时间，我们需要通过show profiles命令。</p>
+<p>不过，请确保你的 profiling 是开启（on）的状态（可以通过 show variables 命令查看）。</p>
+<p>默认情况下， profiling 是关闭（off）的状态，你直接通过set @@profiling&#x3D;1命令即可开启。</p>
+<p>然后，我们就查询到了具体的执行速度。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;Query_ID&quot;</span><span class="punctuation">:</span> <span class="number">6</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;Duration&quot;</span><span class="punctuation">:</span> <span class="number">3.63526325</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;Query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SELECT `score`,`name` FROM `cus_order` ORDER BY `score` DESC&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，一共耗时了接近 4 s。</p>
+<p><strong>如何优化呢？ 加索引并且限制排序数据量</strong> 是一种比较常见的优化方式。</p>
+<p>我们对 score 字段加索引，并限制只排序 score 排名前 500 的数据。</p>
+<p>这个时候，我们再执行下面的 SQL 语句，速度就快了很多，只需要 0.01 秒就排序了前 500 名的数据。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;Query_ID&quot;</span><span class="punctuation">:</span> <span class="number">38</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;Duration&quot;</span><span class="punctuation">:</span> <span class="number">0.0102915</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;Query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SELECT `score`,`name` FROM `cus_order` ORDER BY `score` DESC LIMIT 500&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>当然了，这只是一个最简单的场景，实际项目中的复杂度要比我这里列举的例子复杂很多，执行速度也会慢很多。</p>
+<p>不过，<strong>能不用 MySQL 的 ORDER BY 关键字还是要看具体的业务场景。如果说你的项目需要排序数据量比较小并且业务场景不复杂的话（比如你对你博客的所有文章按照阅读量来排序），我觉得直接使用 MySQL 的 ORDER BY 关键字就可以了。</strong></p>
+<h4 id="Redis-的-sorted-set"><a href="#Redis-的-sorted-set" class="headerlink" title="Redis 的 sorted set"></a>Redis 的 sorted set</h4><p><img src="/images/share/new-interview/up-d90863bb4c39ef96f9893244b9d5f1376ac.png" alt="img"></p>
+<p>了解过 Redis 常见数据结构的小伙伴，都知道 Redis 中有一个叫做 <code>sorted set </code>的数据结构经常被用在各种排行榜的场景下。</p>
+<p>通过 <code>sorted set</code> ，我们能够轻松应对百万级别的用户数据排序。这简直就是专门为排行榜设计的数据结构啊！</p>
+<p>Redis 中 sorted set 有点类似于 Java 中的 <code>TreeSet </code>和<code> HashMap</code> 的结合体，<code>sorted set </code>中的数据会按照权重参数<code> score</code> 的值进行排序。</p>
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>Score</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>user1</td>
+<td>112.0</td>
+</tr>
+<tr>
+<td>user2</td>
+<td>100.0</td>
+</tr>
+<tr>
+<td>user3</td>
+<td>123.0</td>
+</tr>
+<tr>
+<td>user4</td>
+<td>100.0</td>
+</tr>
+<tr>
+<td>user5</td>
+<td>33.0</td>
+</tr>
+<tr>
+<td>user6</td>
+<td>993.0</td>
+</tr>
+</tbody></table>
+<p>我们这里简单来演示一下。我们把上表中的数据添加到<code>sorted set</code>中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 通过 zadd 命令添加了 6 个元素到 cus_order_set 中</span></span><br><span class="line">127.0.0.1:6379&gt; ZADD cus_order_set 112.0 user1 100.0 user2 123.0 user3 100.0 user4 33.0 user5 993.0 user6</span><br><span class="line">(<span class="built_in">integer</span>) 6</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/share/new-interview/up-c25cf4cc1d4d3a484b4db93672138b8c104.png" alt="img"></p>
+<p><code>sorted set </code>基本可以满足大部分排行榜的场景。</p>
+<p><strong>如果我们要查看包含所有用户的排行榜怎么办？</strong> 通过 ZRANGE (从小到大排序) &#x2F; ZREVRANGE （从大到小排序）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -1 代表的是全部的用户数据，</span></span><br><span class="line">127.0.0.1:6379&gt; ZREVRANGE cus_order_set 0 -1</span><br><span class="line">1) <span class="string">&quot;user6&quot;</span></span><br><span class="line">2) <span class="string">&quot;user3&quot;</span></span><br><span class="line">3) <span class="string">&quot;user1&quot;</span></span><br><span class="line">4) <span class="string">&quot;user4&quot;</span></span><br><span class="line">5) <span class="string">&quot;user2&quot;</span></span><br><span class="line">6) <span class="string">&quot;user5&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>如果我们要查看只包含前 3 名的排行榜怎么办？</strong> 限定范围区间即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 0 为 start  2 为 stop</span></span><br><span class="line">127.0.0.1:6379&gt; ZREVRANGE cus_order_set 0 2</span><br><span class="line">1) <span class="string">&quot;user6&quot;</span></span><br><span class="line">2) <span class="string">&quot;user3&quot;</span></span><br><span class="line">3) <span class="string">&quot;user1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>如果我们需要查询某个用户的分数怎么办呢？</strong> 通过 <code>ZSCORE </code>命令即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; ZSCORE  cus_order_set <span class="string">&quot;user1&quot;</span></span><br><span class="line"><span class="string">&quot;112&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>如果我们需要查询某个用户的排名怎么办呢？</strong> 通过<code>ZREVRANK</code>命令即可。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; ZREVRANK  cus_order_set &quot;user3&quot;</span><br><span class="line">(integer) 1 # user3 排名第2</span><br></pre></td></tr></table></figure>
+
+<p><strong>如何对用户的排名数据进行更新呢？</strong> 通过<code> ZINCRBY</code>命令即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 对 user1 的分数加2</span></span><br><span class="line">127.0.0.1:6379&gt; ZINCRBY cus_order_set +2 <span class="string">&quot;user1&quot;</span></span><br><span class="line"><span class="string">&quot;114&quot;</span></span><br><span class="line"><span class="comment"># 对 user1 的分数减1</span></span><br><span class="line">127.0.0.1:6379&gt; ZINCRBY cus_order_set -1 <span class="string">&quot;user1&quot;</span></span><br><span class="line"><span class="string">&quot;113&quot;</span></span><br><span class="line"><span class="comment"># 查看 user1 的分数</span></span><br><span class="line">127.0.0.1:6379&gt; ZSCORE  cus_order_set <span class="string">&quot;user1&quot;</span></span><br><span class="line"><span class="string">&quot;113&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>除了我上面提到的之外，还有一些其他的命令来帮助你解决更多排行榜场景的需求，想要深入研究的小伙伴可以仔细学习哦！</p>
+<p>不过，需要注意的一点是：<strong>Redis 中只保存了排行榜展示所需的数据，需要用户的具体信息数据的话，还是需要去对应的数据库（比如 MySQL）中查。</strong></p>
+<p>你以为这样就完事了？ 不存在的！还有一些无法仅仅通过 Redis 提供的命令解决的场景。</p>
+<p>比如，<strong>如何实现多条件排序？</strong> 其实，答案也比较简单，对于大部分场景，我们直接对 score 值做文章即可。</p>
+<p>更具体点的话就是，我们根据特定的条件来拼接 score 值即可。比如我们还要加上时间先后条件的话，直接在score 值添加上时间戳即可。</p>
+<p>再比如，<strong>如何实现指定日期（比如最近 7 天）的用户数据排序？</strong></p>
+<p>我说一种比较简单的方法：我们把每一天的数据都按照日期为名字，比如 20350305 就代表 2035 年 3 月 5 号。</p>
+<p>如果我们需要查询最近 n 天的排行榜数据的话，直接 ZUNIONSTORE来求 n 个 <code>sorted set </code>的并集即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZUNIONSTORE last_n_days n 20350305 20350306....</span><br></pre></td></tr></table></figure>
+
+<p>我不知道大家看懂了没有，我这里还是简单地造一些数据模拟一下吧！</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 分别添加了 3 天的数据</span></span><br><span class="line">127.0.0.1:6379&gt; ZADD 20350305 112.0 user1 100.0 user2 123.0 user3</span><br><span class="line">(<span class="built_in">integer</span>) 3</span><br><span class="line">127.0.0.1:6379&gt; ZADD 20350306 100.0 user4</span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">127.0.0.1:6379&gt; ZADD 20350307 33.0 user5 993.0 user6</span><br><span class="line">(<span class="built_in">integer</span>) 2</span><br></pre></td></tr></table></figure>
+
+<p>通过 ZUNIONSTORE 命令来查看最近 3 天的排行榜情况：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; ZUNIONSTORE last_n_days 3 20350305 20350306 20350307</span><br><span class="line">(<span class="built_in">integer</span>) 6</span><br></pre></td></tr></table></figure>
+
+<p>现在，这 3 天的数据都集中在了 last_n_days 中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; ZREVRANGE last_n_days 0 -1</span><br><span class="line">1) <span class="string">&quot;user6&quot;</span></span><br><span class="line">2) <span class="string">&quot;user3&quot;</span></span><br><span class="line">3) <span class="string">&quot;user1&quot;</span></span><br><span class="line">4) <span class="string">&quot;user4&quot;</span></span><br><span class="line">5) <span class="string">&quot;user2&quot;</span></span><br><span class="line">6) <span class="string">&quot;user5&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果一个用户同时在多个<code> sorted set</code> 中的话，它最终的<code>score</code>值就等于这些<code>sorted set</code>中该用户的 <code>score </code>值之和。</p>
+<p>既然可以求并集，那必然也可以求交集。你可以通过 <code>ZINTERSTORE </code>命令来求多个 n 个 <code>sorted set</code> 的交集。</p>
+<p><strong>有哪些场景可以用到多个<code>sorted set</code> 的交集呢？</strong> 比如每日打卡的场景，你对某一段时间每天打卡的人进行排序。</p>
+<p>这个命令还有一个常用的权重参数<code>weights</code>（默认为 1）。在进行并集&#x2F;交集的过程中，每个集合中的元素会将自己的 <code>score</code> *<code>weights</code> 。</p>
+<p>我下面演示一下这个参数的作用。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># staff_set 存放员工的排名信息</span></span><br><span class="line">127.0.0.1:6379&gt; ZADD staff_set 3.0 staff1 4.0 staff2</span><br><span class="line">(<span class="built_in">integer</span>) 2</span><br><span class="line"><span class="comment"># staff_set 存放管理者的排名信息</span></span><br><span class="line">127.0.0.1:6379&gt; ZADD manager_set 1.0 manager1 2.0 manager2</span><br><span class="line">(<span class="built_in">integer</span>) 2</span><br></pre></td></tr></table></figure>
+
+<p>如果，我们需要将员工和管理者放在一起比较，不过，两者权重分别为 1 和 3。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># staff_set 的权重为1 manager_set的权重为3</span></span><br><span class="line">127.0.0.1:6379&gt; ZUNIONSTORE all_user_set 2 staff_set manager_set WEIGHTS 1 3</span><br><span class="line">(<span class="built_in">integer</span>) 4</span><br></pre></td></tr></table></figure>
+
+<p>最终排序的结果如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; ZREVRANGE all_user_set 0 -1</span><br><span class="line">1)<span class="string">&quot;manager2&quot;</span></span><br><span class="line">2)<span class="string">&quot;staff2&quot;</span></span><br><span class="line">3)<span class="string">&quot;staff1&quot;</span></span><br><span class="line">4)<span class="string">&quot;manager1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>上面我一共提到了两种设计排行榜的方法：</p>
+<ol>
+<li>MySQL 的 ORDER BY 关键字</li>
+<li>Redis 的 sorted set</li>
+</ol>
+<p>其实，这两种没有孰好孰坏，还是要看具体的业务场景。如果说你的项目需要排序数据量比较小并且业务场景不复杂的话（比如你对你博客的所有文章按照阅读量来排序），我觉得直接使用 MySQL 的 ORDER BY 关键字就可以了，没必要为了排行榜引入一个 Redis。</p>
+<p>另外，在没有分页并且数据量不大的情况下，直接在前端拿到所有需要用到的数据之后再进行排序也是可以的。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>如果觉得不错，请作者喝杯咖啡！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="程序员波特 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.jpg" alt="程序员波特 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/images/wechat_channel.jpg">
+            <span class="icon">
+              <i class="fab fa-weixin"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/" rel="tag"># 面试题</a>
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/01/02/share/new-interview/fileUpload/" rel="prev" title="如何解决大文件上传问题?">
+      <i class="fa fa-chevron-left"></i> 如何解决大文件上传问题?
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/01/02/share/new-interview/system-design/" rel="next" title="如何准备系统设计面试">
+      如何准备系统设计面试 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#MySQL-%E7%9A%84-ORDER-BY-%E5%85%B3%E9%94%AE%E5%AD%97"><span class="nav-number">1.</span> <span class="nav-text">MySQL 的 ORDER BY 关键字</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redis-%E7%9A%84-sorted-set"><span class="nav-number">2.</span> <span class="nav-text">Redis 的 sorted set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="程序员波特"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">程序员波特</p>
+  <div class="site-description" itemprop="description">程序员编程资料站</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">137</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">蜀ICP备2023040197号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">程序员波特</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

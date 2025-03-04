@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="我们先来聊聊描述系统活跃度常用的一些指标。 系统活跃度常用指标我们先来看几个经常用来描述系统活跃度的名词：PV、UV、VV、IP。 🌰 举个栗子：假如你在家用 ADSL 拨号上网，早上 9 点访问了 JavaGuide下的 2 个页面，下午 2 点又访问了 JavaGuide 下的 3 个页面。那么，对于 JavaGuide 来说，今天的 PV、UV、VV、IP 各项指标该如何计算？  PV 等">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何统计网站UV？">
+<meta property="og:url" content="http://example.com/2025/01/03/share/new-interview/uvcount/index.html">
+<meta property="og:site_name" content="程序员波特的个人博客">
+<meta property="og:description" content="我们先来聊聊描述系统活跃度常用的一些指标。 系统活跃度常用指标我们先来看几个经常用来描述系统活跃度的名词：PV、UV、VV、IP。 🌰 举个栗子：假如你在家用 ADSL 拨号上网，早上 9 点访问了 JavaGuide下的 2 个页面，下午 2 点又访问了 JavaGuide 下的 3 个页面。那么，对于 JavaGuide 来说，今天的 PV、UV、VV、IP 各项指标该如何计算？  PV 等">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/share/new-interview/1b4c8488-6fee-4021-b1b1-ce347fa70057.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/dd88cf8c-9017-45a7-be9f-22e6c1e4a14c.png">
+<meta property="article:published_time" content="2025-01-03T08:00:00.000Z">
+<meta property="article:modified_time" content="2025-03-03T14:18:59.709Z">
+<meta property="article:author" content="程序员波特">
+<meta property="article:tag" content="面试题">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/share/new-interview/1b4c8488-6fee-4021-b1b1-ce347fa70057.png">
+
+<link rel="canonical" href="http://example.com/2025/01/03/share/new-interview/uvcount/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>如何统计网站UV？ | 程序员波特的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程序员波特的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个小而美的程序员编程资料站</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/01/03/share/new-interview/uvcount/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="程序员波特">
+      <meta itemprop="description" content="程序员编程资料站">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程序员波特的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何统计网站UV？
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-01-03 16:00:00" itemprop="dateCreated datePublished" datetime="2025-01-03T16:00:00+08:00">2025-01-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-03-03 22:18:59" itemprop="dateModified" datetime="2025-03-03T22:18:59+08:00">2025-03-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BC%81%E4%B8%9A%E7%BA%A7%E5%9C%BA%E6%99%AF%E9%9D%A2%E8%AF%95%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">企业级场景面试题</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>我们先来聊聊描述系统活跃度常用的一些指标。</p>
+<h4 id="系统活跃度常用指标"><a href="#系统活跃度常用指标" class="headerlink" title="系统活跃度常用指标"></a>系统活跃度常用指标</h4><p>我们先来看几个经常用来描述系统活跃度的名词：PV、UV、VV、IP。</p>
+<p>🌰 举个栗子：假如你在家用 ADSL 拨号上网，早上 9 点访问了 <a target="_blank" rel="noopener" href="https://github.com/Snailclimb/JavaGuide">JavaGuide</a>下的 2 个页面，下午 2 点又访问了 JavaGuide 下的 3 个页面。那么，对于 JavaGuide 来说，今天的 PV、UV、VV、IP 各项指标该如何计算？</p>
+<ul>
+<li><p>PV 等于上午浏览的 2 个页面和下午浏览的 3 个页面之和，即 PV &#x3D; 2 + 3</p>
+</li>
+<li><p>UV 指独立访客数，一天内同一访客的多次访问只计为 1 个 UV，即 UV &#x3D; 1</p>
+</li>
+<li><p>VV 指访客的访问次数，上午和下午分别有一次访问行为，即 VV &#x3D; 2</p>
+</li>
+<li><p>IP 为独立 IP 数，由于 ADSL 拨号上网每次都 IP 不同，即 IP &#x3D; 2</p>
+</li>
+</ul>
+<h5 id="PV-Page-View"><a href="#PV-Page-View" class="headerlink" title="PV(Page View)"></a>PV(Page View)</h5><p><strong>PV(Page View)</strong> 即 <strong>页面浏览量</strong>。每当一个页面被打开或者被刷新，都会产生一次 PV。一般来说，PV 与来访者的数量成正比，但是 PV 并不直接决定页面的真实来访者数量，如果一个来访者通过不断的刷新页面或是使用爬虫访问，也可以制造出非常高的 PV 。</p>
+<p>我上面介绍的只是最普通的一个 PV 的计算方式。实际上，PV 的计算规则有很多种。就比如微信公众号的一篇文章，在一段时间内，即使你多次刷新也不会增加阅读量。这样做的好处就是：更能反映出点开文章的真实用户群体的数量了。</p>
+<p><strong>总结 ：PV 能够反映出网站的页面被网站用户浏览&#x2F;刷新的次数。</strong></p>
+<h5 id="UV-Unique-Visitor"><a href="#UV-Unique-Visitor" class="headerlink" title="UV(Unique Visitor)"></a>UV(Unique Visitor)</h5><p><strong>UV(Unique Visitor)</strong> 即 <strong>独立访客</strong>。1 天内相同访客多次访问网站，只计算为 1 个独立访客。UV 是从用户个体的角度来统计的。</p>
+<p><strong>总结：UV 主要用来统计 1 天内访问某站点的用户数。</strong></p>
+<h5 id="VV-Visit-View"><a href="#VV-Visit-View" class="headerlink" title="VV (Visit View)"></a>VV (Visit View)</h5><p><strong>VV (Visit View)</strong> 即 <strong>访客访问的次数</strong>。当访客完成所有的浏览并最终关掉该网站的所有页面时，便完成了一次访问。</p>
+<p>总结：<strong>VV 主要用来记录网站用户在一天内访问你的站点的次数。</strong></p>
+<h5 id="IP"><a href="#IP" class="headerlink" title="IP"></a>IP</h5><p>IP 即 <strong>独立 IP 访问数</strong>。一天内使用不同 IP 地址的用户访问网站的次数，同一 IP 多次访问计数均为 1。</p>
+<h4 id="为什么要进行-PV-UV-统计？"><a href="#为什么要进行-PV-UV-统计？" class="headerlink" title="为什么要进行 PV&amp;UV 统计？"></a>为什么要进行 PV&amp;UV 统计？</h4><p>大部分网站都会进行 PV&amp;UV 的统计。就比如说咱们的 Github 的项目就自带 PV&amp;UV 统计。下面这张图就是 JavaGuide 这个开源项目最近这段时间的 PV 和 UV 的趋势图。</p>
+<p><img src="/images/share/new-interview/1b4c8488-6fee-4021-b1b1-ce347fa70057.png" alt="img"></p>
+<p>通过这张图，我可以清楚地知道我的项目访问量的真实情况。</p>
+<p>简单来说，网站进行 PV&amp;UV 统计有下面这些好处：</p>
+<ul>
+<li>PV 和 UV 的结合更能反映项目的真实访问量，有助于我们更了解自己的网站，对于我们改进网站有指导意义。比如咱们网站的某个网页访问量最大，那我们就可以对那个网页进行优化改进。再比如我们的网站在周末访问量比较大，那我们周末就可以多部署一个服务来提高网站的稳定性和性能。</li>
+<li>PV 和 UV 的结合可以帮助广告主预计投放广告可以带来的流量。</li>
+</ul>
+<h4 id="如何基于-Redis-统计-UV？"><a href="#如何基于-Redis-统计-UV？" class="headerlink" title="如何基于 Redis 统计 UV？"></a>如何基于 Redis 统计 UV？</h4><p>PV 的统计不涉及到数据的去重，而 UV 的计算需要根据 IP 地址或者当前登录的用户来作为去重标准。因此，PV 的统计相对于 UV 的统计来说更为简单一些。</p>
+<p>因此我会重点介绍 UV 的统计。</p>
+<p>最简单的办法就是：为每一个网页维护一个哈希表，网页 ID +日期 为 Key, Value 为看过这篇文章的所有用户 ID 或者 IP（Set 类型的数据结构）。</p>
+<p>当我们需要为指定的网页增加 UV ，首先需要判断对应的用户 ID 或者 IP 是否已经存在于对应的 Set 中。</p>
+<p>示意图如下：</p>
+<p><img src="/images/share/new-interview/dd88cf8c-9017-45a7-be9f-22e6c1e4a14c.png" alt="img"></p>
+<p>当我们需要计算对应页面的 UV 的话，直接计算出页面对应的 Set 集合的大小即可！</p>
+<p>这种方式在访问量不是特别大的网站，还是可以满足基本需求的。</p>
+<p>但是，如果网站的访问量比较大，这种方式就不能够满足我们的需求了！</p>
+<p>试想一下：如果网站的一个页面在一天之内就有接近 100w +不同用户访问的话，维护一个包含 100w+ 用户 ID 或者 用户 IP 的 Set 在内存中，还要不断的判断指定的用户 ID 或者 用户 IP 是否在其中，消耗还是比较大的，更何况这还是一个页面！</p>
+<p>有没有对内存消耗比较小，又有类似<code>Set</code>功能的数据结构呢？</p>
+<p>答案是有的！这个时候我们就需要用到 <code>HyperLogLog </code>了！</p>
+<p>其实，<code>HyperLogLog </code>是一种基数计数概率算法 ,并不是 Redis 特有的。Redis 只是实现了这个算法并提供了一些开箱即用的 API。</p>
+<p>Redis 提供的 HyperLogLog 占用空间非常非常小（基于稀疏矩阵存储）， 12k 的空间就能存储接近2^64个不同元素。</p>
+<p>不过，<code>HyperLogLog</code>的计算结果并不是一个精确值，存在一定的误差，这是由于它本质上是用概率算法导致的。</p>
+<p>但是，一般我们在统计 UV 这种数据的时候，是能够容忍一定范围内的误差的（标准误差是 0.81%，这对于 UV 的统计影响不大，可以忽略不计）。我们更关注的是这种方法能够为我们节省宝贵的服务器资源。</p>
+<p>使用 Redis<code>Hyperloglog</code>进行 UV 统计，我们主要会使用到以下三个命令：</p>
+<ul>
+<li><code>PFADD key values</code> : 用于数据添加，可以一次性添加多个。添加过程中，重复的记录会自动去重。</li>
+<li><code>PFCOUNT key </code>: 对 key 进行统计。</li>
+<li><code>PFMERGE destkey sourcekey1 sourcekey2</code> : 合并多个统计结果，在合并的过程中，会自动去重多个集合中重复的元素。</li>
+</ul>
+<p><strong>具体是怎么做的呢？</strong></p>
+<p>1、将访问指定页面的每个用户 ID 添加到 HyperLogLog 中。</p>
+<figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PFADD PAGE<span class="built_in">_</span>1:UV USER1 USER2 ...... USERn</span><br></pre></td></tr></table></figure>
+
+<p>2、统计指定页面的 UV。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PFCOUNT PAGE_1:UV</span><br></pre></td></tr></table></figure>
+
+<p>HyperLogLog 除了上面的 PFADD 和 PFCOIUNT 命令外，还提供了 PFMERGE ，将多个 HyperLogLog 合并在一起形成一个新的 HyperLogLog 值。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PFMERGE destkey sourcekey [sourcekey ...]</span><br></pre></td></tr></table></figure>
+
+<p>我们来用 Java 写一个简单的程序来实际体验一下，顺便来对比一下 Set 和 HyperLogLog 这两种方式。</p>
+<p>我们这里使用 <a target="_blank" rel="noopener" href="https://github.com/redis/jedis">Jedis</a> 提供的相关 API。</p>
+<p>直接在项目中引入 Jedis 相关的依赖即可：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>redis.clients<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jedis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.6.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>代码如下，我们循环添加了 10w 个用户到指定 <code>Set </code>和 <code>HyperLogLog </code>中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">HyperLogLogTest</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> Jedis jedis;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">SET_KEY</span> <span class="operator">=</span> <span class="string">&quot;SET:PAGE1:2021-12-19&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">PF_KEY</span> <span class="operator">=</span> <span class="string">&quot;PF:PAGE2:2021-12-19&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">long</span> <span class="variable">NUM</span> <span class="operator">=</span> <span class="number">10000</span> * <span class="number">10L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@BeforeEach</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">connectToRedis</span><span class="params">()</span> &#123;</span><br><span class="line">        jedis = <span class="keyword">new</span> <span class="title class_">Jedis</span>(<span class="keyword">new</span> <span class="title class_">HostAndPort</span>(<span class="string">&quot;localhost&quot;</span>, <span class="number">6379</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">initData</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; NUM; ++i) &#123;</span><br><span class="line">            System.out.println(i);</span><br><span class="line">            jedis.sadd(SET_KEY, <span class="string">&quot;USER&quot;</span> + i);</span><br><span class="line">            jedis.pfadd(PF_KEY, <span class="string">&quot;USER&quot;</span> + i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">getData</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">DecimalFormat</span> <span class="variable">decimalFormat</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">DecimalFormat</span>(<span class="string">&quot;##.00%&quot;</span>);</span><br><span class="line">        <span class="type">Long</span> <span class="variable">setCount</span> <span class="operator">=</span> jedis.scard(SET_KEY);</span><br><span class="line">        System.out.println(decimalFormat.format((<span class="type">double</span>) setCount / (<span class="type">double</span>)NUM));</span><br><span class="line">        <span class="type">long</span> <span class="variable">pfCount</span> <span class="operator">=</span> jedis.pfcount(PF_KEY);</span><br><span class="line">        System.out.println(decimalFormat.format((<span class="type">double</span>) pfCount / (<span class="type">double</span>)NUM));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">100.00%</span><br><span class="line">99.27%</span><br></pre></td></tr></table></figure>
+
+<p>从输出结果可以看出 Set 可以非常精确的存储这 10w 个用户，而 HyperLogLog 有一点点误差，误差率大概在 0.73% 附近。</p>
+<p>我们再来对比一下两者的存储使用空间。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt;  debug object PF:PAGE2:2021-12-19</span><br><span class="line">Value at:0x7f7e81c77ec0 refcount:1 encoding:raw serializedlength:10523 lru:14343834 lru_seconds_idle:1288</span><br><span class="line">127.0.0.1:6379&gt; debug object SET:PAGE1:2021-12-19</span><br><span class="line">Value at:0x7f7e81c77eb0 refcount:1 encoding:hashtable serializedlength:988895 lru:14344138 lru_seconds_idle:1009</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>我们可以通过 <code>debug object key</code> 命令来查看某个 key 序列化后的长度。输出的项的说明：</p>
+<ul>
+<li>Value at ：key 的内存地址</li>
+<li>refcount ：引用次数</li>
+<li>encoding ：编码类型</li>
+<li>serializedlength：序列化长度(单位是 Bytes)</li>
+<li>lru_seconds_idle：空闲时间</li>
+</ul>
+<p>不过，你需要注意的是 serializedlength 仅仅代表 key 序列化后的长度（持久化本地的时候会用到），并不是 key 在内存中实际占用的长度。不过，它也侧面反应了一个 key 所占用的内存，可以用来比较两个 key 消耗内存的大小。</p>
+</blockquote>
+<p>从上面的结果可以看出内存占用上，Hyperloglog 消耗了 10523 bytes ≈ 10kb，而 Set 消耗了</p>
+<p>988895 bytes ≈ 965kb （粗略估计，两者实际占用内存大小会更大）。</p>
+<p>可以看出，仅仅是 10w 的数据，两者消耗的内存差别就这么大，如果数据量更大的话，两者消耗的内存的差距只会更大！</p>
+<p>我们这里再拓展一下： <strong>假如我们需要获取指定天数的 UV 怎么办呢？</strong></p>
+<p>其实，思路很简单！我们在 key 上添加日期作为标识即可！</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PFADD PAGE_1:UV:<span class="number">2021</span>-<span class="number">12</span>-<span class="number">19</span> USER1 USER2 ...... USERn</span><br></pre></td></tr></table></figure>
+
+<p><strong>那假如我们需要获取指定时间（精确到小时）的 UV 怎么办呢？</strong></p>
+<p>思路也一样，我们在 key 上添加指定时间作为标识即可！</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PFADD PAGE_1:UV:2021-12-19-12 USER1 USER2 ...... USERn</span><br></pre></td></tr></table></figure>
+
+<h4 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h4><p>除了上面介绍到的方案之外，Doris 、ClickHouse 等用于联机分析(OLAP)的列式数据库管理系统(DBMS)现在也经常用在统计相关的场景。比如说百度的百度统计（网站流量分析）就是基于 Doris 做的，再比如说 Yandex（俄罗斯的一家做搜索引擎的公司）的在线流量分析产品就是用自家的 ClickHouse 做的。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>如果觉得不错，请作者喝杯咖啡！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="程序员波特 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.jpg" alt="程序员波特 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/images/wechat_channel.jpg">
+            <span class="icon">
+              <i class="fab fa-weixin"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/" rel="tag"># 面试题</a>
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/01/02/share/new-interview/short-url/" rel="prev" title="如何设计一个短链系统?">
+      <i class="fa fa-chevron-left"></i> 如何设计一个短链系统?
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%B4%BB%E8%B7%83%E5%BA%A6%E5%B8%B8%E7%94%A8%E6%8C%87%E6%A0%87"><span class="nav-number">1.</span> <span class="nav-text">系统活跃度常用指标</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#PV-Page-View"><span class="nav-number">1.1.</span> <span class="nav-text">PV(Page View)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#UV-Unique-Visitor"><span class="nav-number">1.2.</span> <span class="nav-text">UV(Unique Visitor)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#VV-Visit-View"><span class="nav-number">1.3.</span> <span class="nav-text">VV (Visit View)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IP"><span class="nav-number">1.4.</span> <span class="nav-text">IP</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E8%BF%9B%E8%A1%8C-PV-UV-%E7%BB%9F%E8%AE%A1%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">为什么要进行 PV&amp;UV 统计？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%9F%BA%E4%BA%8E-Redis-%E7%BB%9F%E8%AE%A1-UV%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">如何基于 Redis 统计 UV？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">4.</span> <span class="nav-text">后记</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="程序员波特"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">程序员波特</p>
+  <div class="site-description" itemprop="description">程序员编程资料站</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">137</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">蜀ICP备2023040197号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">程序员波特</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="各位使用过简书，知乎或 B 站的小伙伴应该都有这样的使用体验：当有其他用户关注我们或者私信我们的行为时，我们会收到相关的消息。 虽然这些功能看上去简单，但其背后的设计是非常复杂的，几乎是一个完成的系统，可以称之为 站内消息系统。 我以 B 站举例（个人认为 B 站的消息系统是我见过的非常完美的，UI 也最为人性化的）：  可以看到 B 站把消息大致分为了三类：  系统推送的通知(System No">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何设计一个站内消息系统?">
+<meta property="og:url" content="http://example.com/2025/01/02/share/new-interview/notice/index.html">
+<meta property="og:site_name" content="程序员波特的个人博客">
+<meta property="og:description" content="各位使用过简书，知乎或 B 站的小伙伴应该都有这样的使用体验：当有其他用户关注我们或者私信我们的行为时，我们会收到相关的消息。 虽然这些功能看上去简单，但其背后的设计是非常复杂的，几乎是一个完成的系统，可以称之为 站内消息系统。 我以 B 站举例（个人认为 B 站的消息系统是我见过的非常完美的，UI 也最为人性化的）：  可以看到 B 站把消息大致分为了三类：  系统推送的通知(System No">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/share/new-interview/409fa4a1-cdb5-498d-8579-32780559a6f4.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/854ccdbc-7007-4dbc-82b1-9d5a14aac717.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/4c1f605d-6e63-4269-8388-592ca06eb79e.png">
+<meta property="og:image" content="http://example.com/images/share/new-interview/48555656-73e2-4406-a89f-3f7c07b9fd2e.png">
+<meta property="article:published_time" content="2025-01-02T04:00:00.000Z">
+<meta property="article:modified_time" content="2025-03-03T14:08:38.545Z">
+<meta property="article:author" content="程序员波特">
+<meta property="article:tag" content="面试题">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/share/new-interview/409fa4a1-cdb5-498d-8579-32780559a6f4.png">
+
+<link rel="canonical" href="http://example.com/2025/01/02/share/new-interview/notice/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>如何设计一个站内消息系统? | 程序员波特的个人博客</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">程序员波特的个人博客</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">一个小而美的程序员编程资料站</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/01/02/share/new-interview/notice/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="程序员波特">
+      <meta itemprop="description" content="程序员编程资料站">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="程序员波特的个人博客">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何设计一个站内消息系统?
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-01-02 12:00:00" itemprop="dateCreated datePublished" datetime="2025-01-02T12:00:00+08:00">2025-01-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-03-03 22:08:38" itemprop="dateModified" datetime="2025-03-03T22:08:38+08:00">2025-03-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BC%81%E4%B8%9A%E7%BA%A7%E5%9C%BA%E6%99%AF%E9%9D%A2%E8%AF%95%E9%A2%98/" itemprop="url" rel="index"><span itemprop="name">企业级场景面试题</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>各位使用过简书，知乎或 B 站的小伙伴应该都有这样的使用体验：当有其他用户关注我们或者私信我们的行为时，我们会收到相关的消息。</p>
+<p>虽然这些功能看上去简单，但其背后的设计是非常复杂的，几乎是一个完成的系统，可以称之为 站内消息系统。</p>
+<p>我以 B 站举例（个人认为 B 站的消息系统是我见过的非常完美的，UI 也最为人性化的）：</p>
+<p><img src="/images/share/new-interview/409fa4a1-cdb5-498d-8579-32780559a6f4.png" alt="img"></p>
+<p>可以看到 B 站把消息大致分为了三类：</p>
+<ol>
+<li>系统推送的通知(System Notice)；</li>
+<li>回复、@、点赞等用户行为产生的提醒(Remind)；</li>
+<li>用户之间的私信(Chat)。</li>
+</ol>
+<p>这样设计不仅分类明确，且处于同一个主体的事件提醒还会做一个聚合，极大的提高了用户体验，不让用户收到太多分散的消息。</p>
+<p>举个例子：比如你在某个视频或某篇文章下发表了评论，有 100 个人给你的评论点了赞，那么你希望消息页面呈现的是一个一个用户给你点赞的提醒，还是像以下聚合之后的提醒：</p>
+<p><img src="/images/share/new-interview/854ccdbc-7007-4dbc-82b1-9d5a14aac717.png" alt="img"></p>
+<p>我相信你大概率会选择后者。</p>
+<p>我认为对于很多应用来说，这样的设计都是非常合理的，接下来我写写我对于消息系统的设计。</p>
+<h4 id="系统通知-System-Notice"><a href="#系统通知-System-Notice" class="headerlink" title="系统通知(System Notice)"></a>系统通知(System Notice)</h4><p>系统通知一般是由后台管理员发出，然后指定某一类（全体，个人等）用户接收。基于此设想，可以把系统通知大致分为两张表：</p>
+<ol>
+<li>**t_manager_system_notice（管理员系统通知表） ：**记录管理员发出的通知 ；</li>
+<li><strong>t_user_system_notice（用户系统通知表） ：</strong> 存储用户接受的通知。</li>
+</ol>
+<p>t_manager_system_notice（管理员系统通知表） 表结构如下：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>system_notice_id</td>
+<td>LONG</td>
+<td>系统通知 ID</td>
+</tr>
+<tr>
+<td>title</td>
+<td>VARCHAR</td>
+<td>标题</td>
+</tr>
+<tr>
+<td>content</td>
+<td>TEXT</td>
+<td>内容</td>
+</tr>
+<tr>
+<td>type</td>
+<td>VARCHAR</td>
+<td>发给哪些用户：单用户 single；全体用户 all，vip 用户，具体类型各位小伙伴可以根据自己的需求选择</td>
+</tr>
+<tr>
+<td>state</td>
+<td>BOOLEAN</td>
+<td>是否已被拉取过，如果已经拉取过，就无需再次拉取</td>
+</tr>
+<tr>
+<td>recipient_id</td>
+<td>LONG</td>
+<td>接受通知的用户的 ID，如果 type 为单用户，那么 recipient 为该用户的 ID;否则 recipient 为 0</td>
+</tr>
+<tr>
+<td>manager_id</td>
+<td>LONG</td>
+<td>发布通知的管理员 ID</td>
+</tr>
+<tr>
+<td>publish_time</td>
+<td>TIMESTAMP</td>
+<td>发布时间</td>
+</tr>
+</tbody></table>
+<p>t_user_system_notice（用户系统通知表）结构如下：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>user_notice_id</td>
+<td>LONG</td>
+<td>主键 ID</td>
+</tr>
+<tr>
+<td>state</td>
+<td>BOOLEAN</td>
+<td>是否已读</td>
+</tr>
+<tr>
+<td>system_notice_id</td>
+<td>LONG</td>
+<td>系统通知的 ID</td>
+</tr>
+<tr>
+<td>recipient_id</td>
+<td>LONG</td>
+<td>接受通知的用户的 ID</td>
+</tr>
+<tr>
+<td>pull_time</td>
+<td>TIMESTAMP</td>
+<td>拉取通知的时间</td>
+</tr>
+</tbody></table>
+<p><strong>当管理员发布一条通知后，将通知插入 t_manager_system_notice 表中，然后系统定时的从 t_manager_system_notice 表中拉取通知，然后根据通知的 type 将通知插入 t_user_system_notice 表中。</strong></p>
+<p>如果通知的 type 是 single 的，那就只需要插入一条记录到 t_user_system_notice 中。如果是全体用户，那么就需要将一个通知批量根据不同的用户 ID 插入到 t_user_system_notice 中，这个数据量就需要根据平台的用户量来计算。</p>
+<p>🌰 举个例子：管理员 A 发布了一个活动的通知，他需要将这个通知发布给全体用户，当拉取时间到来时，系统会将这一条通知取出。随后系统到用户表中查询选取所有用户的 ID，然后将这一条通知的信息根据所有用户的 ID，批量插入 t_user_system_notice 中。用户需要查看系统通知时，从 t_user_system_notice 表中查询就行了。</p>
+<p>👉 需要注意的是：</p>
+<ol>
+<li>因为一次拉取的数据量可能很大，所以两次拉取的时间间隔可以设置的长一些。</li>
+<li>拉取 t_manager_system_notice 表中的通知时，需要判断 state，如果已经拉取过，就不需要重复拉取，否则会造成重复消费。</li>
+<li>有的小伙伴可能有疑问： 某条通知已经被拉取过的话，在其后注册的用户是不是不能再接收到这条通知？是的。但如果你想将已拉取过的通知推送给那些后注册的用户，也不是特别大的问题。只需要再写一个定时任务，这个<strong>定时任务可以将通知的 push_time 与用户的注册时间比较一下，重新推送即可。</strong></li>
+</ol>
+<p>认真思考的小伙伴应该也发现了，当用户量比较大比如上千万的时候，如果发送一个全体用户的通知需要挨个插入数据到一张表的话，是不靠谱的！</p>
+<p>常见的解决办法，有两种方式:</p>
+<ol>
+<li>每位用户单独有一张或者几张专门用来存放站内消息的表，根据 hash(userId)作为表名后缀。</li>
+<li>对于系统通知类型，只存放一条数据到 t_user_system_notice 表，用户自己拉取数据然后再判断消息是否已经读取过即可。</li>
+</ol>
+<p>并且，当一条通知需要发布给全体用户时，我们还应该考虑到用户的活跃度。因为如果有些用户长期不活跃，我们还将通知推送给他（她），这显然会造成空间的浪费。 所以在选取用户 ID 时，我们可以将用户上次登录的时间与推送时间做一个比较，如果用户一年未登陆或几个月未登录，我们就不选取其 ID，进而避免无谓的推送。</p>
+<p>以上就是系统通知的设计了，接下来再看看较难的提醒类型的消息。</p>
+<h4 id="事件提醒-EventRemind"><a href="#事件提醒-EventRemind" class="headerlink" title="事件提醒(EventRemind)"></a>事件提醒(EventRemind)</h4><p>之所以称提醒类型的消息为事件提醒，是因为此类消息均是通过用户的行为产生的，如下：</p>
+<ul>
+<li>xxx 在某个评论中@了你；</li>
+<li>xxx 点赞了你的文章；</li>
+<li>xxx 点赞了你的评论；</li>
+<li>xxx 回复了你的文章；</li>
+<li>xxx 回复了你的评论；</li>
+<li>……</li>
+</ul>
+<p>诸如此类事件，我们以单词 action 形容不同的事件（点赞，回复，@（at））。 可以看到除了事件之外，我们还需要了解用户是在哪个地方产生的事件，以便当我们收到提醒时， 点击这条消息就可以去到事件现场，从而增强用户体验，我以事件源 source 来形容事件发生的地方。</p>
+<ul>
+<li>当 action 为点赞，source 为文章时，我就知道：有用户点赞了我的某篇文章；</li>
+<li>当 action 为点赞，source 为评论时，我就知道：有用户点赞了我的某条评论；</li>
+<li>当 action 为@（at）， source 为评论时，我就知道：有用户在某条评论里@了我；</li>
+<li>当 action 为回复，source 为文章时，我就知道：有用户回复了我的某篇文章；</li>
+<li>当 action 为回复，source 为评论时，我就知道：有用户回复了我的某条评论；</li>
+</ul>
+<p>由此可以设计出事件提醒表 t_event_remind，其结构如下：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>event_remind_id</td>
+<td>LONG</td>
+<td>消息 ID</td>
+</tr>
+<tr>
+<td>action</td>
+<td>VARCHAR</td>
+<td>动作类型，如点赞、at(@)、回复等</td>
+</tr>
+<tr>
+<td>source_id</td>
+<td>LONG</td>
+<td>事件源 ID，如评论 ID、文章 ID 等</td>
+</tr>
+<tr>
+<td>source_type</td>
+<td>VARCHAR</td>
+<td>事件源类型：”Comment”、”Post”等</td>
+</tr>
+<tr>
+<td>source_content</td>
+<td>VARCHAR</td>
+<td>事件源的内容，比如回复的内容，回复的评论等等</td>
+</tr>
+<tr>
+<td>url</td>
+<td>VARCHAR</td>
+<td>事件所发生的地点链接 url</td>
+</tr>
+<tr>
+<td>state</td>
+<td>BOOLEAN</td>
+<td>是否已读</td>
+</tr>
+<tr>
+<td>sender_id</td>
+<td>LONG</td>
+<td>操作者的 ID，即谁关注了你，at 了你</td>
+</tr>
+<tr>
+<td>recipient_id</td>
+<td>LONG</td>
+<td>接受通知的用户的 ID</td>
+</tr>
+<tr>
+<td>remind_time</td>
+<td>TIMESTAMP</td>
+<td>提醒的时间</td>
+</tr>
+</tbody></table>
+<h5 id="消息聚合"><a href="#消息聚合" class="headerlink" title="消息聚合"></a>消息聚合</h5><p>消息聚合只适用于事件提醒，以聚合之后的点赞消息来说：</p>
+<ul>
+<li>100 人 {点赞} 了你的 {文章 ID &#x3D; 1} ：《A》；</li>
+<li>100 人 {点赞} 了你的 {文章 ID &#x3D; 2} ：《B》；</li>
+<li>100 人 {点赞} 了你的 {评论 ID &#x3D; 3} ：《C》；</li>
+</ul>
+<p>聚合之后的消息明显有两个特征，即： <strong>action</strong> 和 <strong>source type</strong>，这是系统消息和私信都不具备的， 所以我个人认为事件提醒的设计要稍微比系统消息和私信复杂。</p>
+<h5 id="如何聚合？"><a href="#如何聚合？" class="headerlink" title="如何聚合？"></a>如何聚合？</h5><p>稍稍观察下聚合的消息就可以发现：某一类的聚合消息之间是按照 source type 和 source id 来分组的， 因此我们可以得出以下伪 SQL：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t_event_remind <span class="keyword">WHERE</span> recipient_id <span class="operator">=</span> 用户ID</span><br><span class="line"><span class="keyword">AND</span> action <span class="operator">=</span> 点赞 <span class="keyword">AND</span> state <span class="operator">=</span> <span class="literal">FALSE</span> <span class="keyword">GROUP</span> <span class="keyword">BY</span> source_id , source_type;</span><br></pre></td></tr></table></figure>
+
+<p>当然，SQL 层面的结果集处理还是很麻烦的，所以我的想法先把用户所有的点赞消息先查出来， 然后在程序里面进行分组，这样会简单不少。</p>
+<h5 id="拓展"><a href="#拓展" class="headerlink" title="拓展"></a>拓展</h5><p>其实还有一种设计提醒表的做法，即按业务分类，不同的提醒存入不同的表，这样可以分为:</p>
+<ol>
+<li><p>点赞提醒表</p>
+</li>
+<li><p>回复提醒表</p>
+</li>
+<li><p>at(@)提醒表。</p>
+</li>
+</ol>
+<p>我认为这种设计比第一种的更松耦合，不必所有类型的提醒都挤在一张表里，但是这也会带来表数量的膨胀。 所以各位小伙伴可以自行选择方案。</p>
+<h4 id="私信"><a href="#私信" class="headerlink" title="私信"></a>私信</h4><p>站内私信一般都是点到点的，且要求是实时的，服务端可以采用 Netty 等高性能网络通信框架完成请求。 我们还是以 B 站为例，看看它是怎么设计的：</p>
+<p><img src="/images/share/new-interview/4c1f605d-6e63-4269-8388-592ca06eb79e.png" alt="img"></p>
+<p>B 站的私信部分可以分为两部分：</p>
+<ol>
+<li>左边的与不同用户的聊天室；</li>
+<li>与当前正在对话的用户的对话框，显示了当前用户与目标用户的所有消息。</li>
+</ol>
+<p>按照这个设计，我们可以先设计出聊天室表 t_private_chat，因为是一对一，所以聊天室表会包含对话的两个用户的信息：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>private_chat_id</td>
+<td>LONG</td>
+<td>聊天室 ID</td>
+</tr>
+<tr>
+<td>user1_id</td>
+<td>LONG</td>
+<td>用户 1 的 ID</td>
+</tr>
+<tr>
+<td>user2_id</td>
+<td>LONG</td>
+<td>用户 2 的 ID</td>
+</tr>
+<tr>
+<td>last_message</td>
+<td>VARCHAR</td>
+<td>最后一条消息的内容</td>
+</tr>
+</tbody></table>
+<p>这里 user1_id 和 user2_id 代表两个用户的 ID，并无特定的先后顺序。</p>
+<p>接下来是私信表 t_private_message 了，私信自然和所属的聊天室有联系，且考虑到私信可以在记录中删除（删除了只是不显示记录，但是对方会有记录，撤回才是真正的删除），就还需要记录私信的状态，以下是我的设计：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>private_message_id</td>
+<td>LONG</td>
+<td>私信 ID</td>
+</tr>
+<tr>
+<td>content</td>
+<td>TEXT</td>
+<td>私信内容</td>
+</tr>
+<tr>
+<td>state</td>
+<td>BOOLEAN</td>
+<td>是否已读</td>
+</tr>
+<tr>
+<td>sender_remove</td>
+<td>BOOLEAN</td>
+<td>发送消息的人是否把这条消息从聊天记录中删除了</td>
+</tr>
+<tr>
+<td>recipient_remove</td>
+<td>BOOLEAN</td>
+<td>接受人是否把这条消息从聊天记录删除了</td>
+</tr>
+<tr>
+<td>sender_id</td>
+<td>LONG</td>
+<td>发送者 ID</td>
+</tr>
+<tr>
+<td>recipient_id</td>
+<td>LONG</td>
+<td>接受者 ID</td>
+</tr>
+<tr>
+<td>send_time</td>
+<td>TIMESTAMP</td>
+<td>发送时间</td>
+</tr>
+</tbody></table>
+<h4 id="消息设置"><a href="#消息设置" class="headerlink" title="消息设置"></a>消息设置</h4><p>消息设置一般都是针对提醒类型的消息的，且肯定是由用户自己设置的。所以我想到一般有以下设置选项：</p>
+<ol>
+<li>是否开启点赞提醒；</li>
+<li>是否开启回复提醒；</li>
+<li>是否开启@提醒；</li>
+</ol>
+<p>下面是 B 站的消息设置：</p>
+<p><img src="/images/share/new-interview/48555656-73e2-4406-a89f-3f7c07b9fd2e.png" alt="img"></p>
+<p>可以看到 B 站还添加了陌生人选项，也就是说如果给你发送私信的用户不是你关注的用户，那么视之为陌生人私信，就不接受。</p>
+<p>以下是我对于消息设置的设计：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>user_id</td>
+<td>LONG</td>
+<td>用户 ID</td>
+</tr>
+<tr>
+<td>like_message</td>
+<td>BOOLEAN</td>
+<td>是否接收点赞消息</td>
+</tr>
+<tr>
+<td>reply_message</td>
+<td>BOOLEAN</td>
+<td>是否接收回复消息</td>
+</tr>
+<tr>
+<td>at_message</td>
+<td>BOOLEAN</td>
+<td>是否接收 at 消息</td>
+</tr>
+<tr>
+<td>stranger_message</td>
+<td>BOOLEAN</td>
+<td>是否接收陌生人的私信</td>
+</tr>
+</tbody></table>
+<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><p>以上就是我对于整个站内消息系统的大概设计了，我参考了很多文章的内容以及很多网站的设计，但实际项目的需求肯定与我所介绍的有很多出入，所以各位小伙伴可以酌情参考。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>如果觉得不错，请作者喝杯咖啡！</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="程序员波特 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.jpg" alt="程序员波特 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/images/wechat_channel.jpg">
+            <span class="icon">
+              <i class="fab fa-weixin"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%9D%A2%E8%AF%95%E9%A2%98/" rel="tag"># 面试题</a>
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/01/02/share/new-interview/system-design/" rel="prev" title="如何准备系统设计面试">
+      <i class="fa fa-chevron-left"></i> 如何准备系统设计面试
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/01/02/share/new-interview/feed/" rel="next" title="如何设计微博Feed流/信息流系统?">
+      如何设计微博Feed流/信息流系统? <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E9%80%9A%E7%9F%A5-System-Notice"><span class="nav-number">1.</span> <span class="nav-text">系统通知(System Notice)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%8B%E4%BB%B6%E6%8F%90%E9%86%92-EventRemind"><span class="nav-number">2.</span> <span class="nav-text">事件提醒(EventRemind)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E8%81%9A%E5%90%88"><span class="nav-number">2.1.</span> <span class="nav-text">消息聚合</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%81%9A%E5%90%88%EF%BC%9F"><span class="nav-number">2.2.</span> <span class="nav-text">如何聚合？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%8B%93%E5%B1%95"><span class="nav-number">2.3.</span> <span class="nav-text">拓展</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A7%81%E4%BF%A1"><span class="nav-number">3.</span> <span class="nav-text">私信</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E8%AE%BE%E7%BD%AE"><span class="nav-number">4.</span> <span class="nav-text">消息设置</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.1.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="程序员波特"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">程序员波特</p>
+  <div class="site-description" itemprop="description">程序员编程资料站</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">137</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">蜀ICP备2023040197号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">程序员波特</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
